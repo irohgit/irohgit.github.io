@@ -24,6 +24,147 @@
             --font-serif:'Space Grotesk',sans-serif;
             --font-display:'Space Grotesk',sans-serif;
         }
+        .btn-link{
+            display:inline-flex;align-items:center;gap:10px;
+            font-family:var(--font-mono);font-size:13px;font-weight:500;
+            color:#fff;background:var(--accent);
+            text-decoration:none;border:1px solid var(--accent);
+            border-radius:var(--r);
+            padding:16px 26px;              /* generous — gives it real presence */
+            margin:8px 0 4px;
+            transition:transform .15s, box-shadow .15s, background .15s;
+            box-shadow:0 2px 10px rgba(47,111,79,0.18);
+        }
+        .btn-link:hover{
+            background:#28603f;             /* slightly darker green on hover */
+            transform:translateY(-2px);     /* lifts — feels clickable */
+            box-shadow:0 6px 18px rgba(47,111,79,0.28);
+        }
+        .btn-link svg{width:16px;height:16px;}
+        /* thumbnails in the rail */
+
+        /* ── COMMIT GALLERY ── */
+        .commit-gallery{
+            display:flex;
+            flex-direction:column;
+            gap:10px;
+            margin-top:10px;
+        }
+
+        .gallery-item{
+            container-type:inline-size;   /* ← this lets children size off THIS element's width */
+            position:relative;
+            border:1px solid var(--border);
+            border-radius:6px;
+            overflow:hidden;
+            cursor:zoom-in;
+            transition:border-color .15s, transform .15s;
+        }
+        .gallery-item:hover{
+            border-color:var(--accent);
+            transform:translateY(-1px);
+        }
+
+        /* the screenshot — greyscale by default, full colour on hover */
+        .gallery-item img{
+            width:100%;
+            display:block;
+            filter:grayscale(100%) contrast(.95) brightness(1.02);
+            transition:filter .2s;
+        }
+        .gallery-item:hover img{
+            filter:none;
+        }
+
+        /* caption overlay: title top-left, desc under it, hash bottom-left */
+        .gallery-cap{
+            position:absolute;
+            inset:0;
+            display:flex;
+            flex-direction:column;
+            align-items:flex-start;
+            background:linear-gradient(rgba(20,22,28,0.35), rgba(20,22,28,0.9));
+            color:#fff;
+            padding:12px;
+            font-family:var(--font-display);
+            font-size:13px;          /* the base — everything below is relative to THIS */
+        }
+        .g-title{
+            font-weight:500;
+            color:#fff;
+            letter-spacing:.02em;
+        }
+  
+        .g-desc{
+            color:rgba(255,255,255,0.85);
+            margin-top:0.4em;
+            line-height:1.4;
+        }
+        .g-hash{
+            color:var(--accent);
+            margin-top:auto;
+            font-family:var(--font-mono);
+        }
+        .g-title{ font-size:clamp(14px, 7cqw, 24px); }
+        .g-desc{  font-size:clamp(12px, 5.5cqw, 20px); }
+        .g-hash{  font-size:clamp(12px, 5.5cqw, 20px); }
+        /* the lightbox overlay */
+        .lightbox{
+            display:none;position:fixed;inset:0;z-index:1000;
+            background:rgba(20,22,28,0.88);
+            align-items:center;justify-content:center;
+            padding:40px;cursor:zoom-out;
+            backdrop-filter:blur(50px);
+        }
+        .lightbox.open{display:flex;}
+        .lightbox img{
+            max-width:95%;max-height:92vh;
+            border-radius:8px;box-shadow:0 20px 60px rgba(0,0,0,.5);
+            cursor:default;
+        }
+        .lightbox-close{
+            position:absolute;top:20px;right:30px;
+            font-size:40px;line-height:1;color:#fff;cursor:pointer;
+            opacity:.8;transition:opacity .15s;
+        }
+        .lightbox-close:hover{opacity:1;}
+
+        .lightbox-inner{
+            display:flex;
+            flex-direction:column;
+            align-items:center;
+            max-width:95%;
+            max-height:92vh;
+        }
+        .lightbox-inner img{
+            max-width:100%;
+            max-height:85vh;              /* leave room for the caption below */
+            border-radius:8px;
+            box-shadow:0 20px 60px rgba(0,0,0,.5);
+        }
+        .lightbox-caption{
+            margin-top:14px;
+            font-family:var(--font-mono);
+            font-size:13px;
+            color:rgba(255,255,255,0.85);
+            text-align:center;
+            max-width:60ch;
+        }
+        /* wide two-column code section that breaks past the reading column */
+        .code-duo{
+            display:grid;
+            grid-template-columns:1fr 1fr;
+            gap:16px;
+            width:min(1180px, 92vw);          /* wider than the 820px column */
+            margin-left:50%;
+            transform:translateX(-50%);        /* re-center the wider block */
+            margin-top:16px;
+        }
+        .code-duo .filepath{margin-top:0;}
+        .code-duo pre{margin:6px 0 0;}
+        @media(max-width:900px){
+            .code-duo{grid-template-columns:1fr;width:100%;margin-left:0;transform:none;}
+        }
         html{scroll-behavior:smooth;}
         body{background:var(--bg);color:var(--body);font-family:var(--font-sans);
             font-size:14px;line-height:1.6;min-height:100vh;
@@ -64,11 +205,19 @@
         .blog-intro p strong{color:var(--h2);font-weight:500;}
 
         article{padding:52px 0;border-top:1px solid var(--border);scroll-margin-top:30px;}
-        .post-eyebrow{font-family:var(--font-mono);font-size:10px;letter-spacing:.14em;
-            text-transform:uppercase;color:var(--accent);margin-bottom:12px;
-            display:flex;gap:12px;align-items:center;flex-wrap:wrap;}
-        .post-eyebrow .note-id{background:var(--accent);color:#fff;padding:2px 9px;
-            border-radius:4px;letter-spacing:.06em;font-weight:500;}
+        .post-eyebrow{
+            display:flex;
+            flex-direction:column;      /* stack: chip on line 1, meta on line 2 */
+            align-items:flex-start;     /* left-aligned */
+            gap:8px;
+            font-family:var(--font-mono);font-size:10px;letter-spacing:.14em;
+            text-transform:uppercase;color:var(--label);margin-bottom:12px;
+        }
+        .post-eyebrow .note-id{
+            background:var(--accent);color:#fff;padding:3px 10px;border-radius:4px;
+            letter-spacing:.06em;font-weight:500;
+        }
+        .eyebrow-meta{color:var(--label);}   /* the date+tags line, muted */
         .post-eyebrow .badge{font-size:9px;padding:2px 8px;border-radius:999px;letter-spacing:.08em;}
         .badge-solo{background:var(--accent-dim);color:var(--accent);border:1px solid var(--accent-border);}
         .badge-group{background:var(--info-dim);color:var(--info);border:1px solid rgba(74,143,201,.28);}
@@ -78,7 +227,7 @@
         article h3{font-size:15px;color:var(--h2);font-weight:600;margin:34px 0 12px;
             display:flex;align-items:baseline;gap:10px;}
         article h3 .n{font-family:var(--font-mono);font-size:11px;color:var(--accent);}
-        article p{font-size:14.5px;color:var(--body);margin-bottom:15px;max-width:66ch;}
+        article p{font-size:14.5px;color:var(--body);margin-bottom:15px;max-width:150ch;}
         article p strong{color:var(--h3);font-weight:500;}
         article em{color:var(--h3);font-style:italic;}
         code{font-family:var(--font-mono);font-size:.88em;background:var(--surface-2);
@@ -88,7 +237,7 @@
         .shot{margin:0 0 12px;border-radius:var(--r-lg);overflow:hidden;border:1px solid var(--border-mid);}
         .shot img{width:100%;display:block;}
         .shot-cap{font-family:var(--font-mono);font-size:11px;color:var(--caption);
-            line-height:1.6;margin:0 0 30px;}
+            line-height:1.6;margin:0 auto 30px; max-width:150ch;}
 
         /* exec summary */
         .exec{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);
@@ -100,7 +249,10 @@
             text-transform:uppercase;padding-top:3px;color:var(--accent);}
         .exec-row .v{font-size:16px;color:var(--h2);line-height:1.55;}
         @media(max-width:600px){.exec-row{grid-template-columns:1fr;gap:3px;}}
-
+        .exec-head{text-align:center;padding:16px 0 4px;}
+        .exec-head h2{font-family:var(--font-display);font-size:15px;font-weight:600;
+            letter-spacing:.08em;color:var(--h2);margin:0;}
+        
         /* frames (dev voice) */
         .frame{border-left:2px solid var(--accent);background:var(--accent-dim);
             padding:15px 20px;border-radius:0 var(--r) var(--r) 0;margin:0 0 24px;}
@@ -193,41 +345,86 @@
     <div class="kit-row"><span class="kit-label">Languages</span><span class="kit-value">C++ · C#</span></div>
     <div class="kit-row"><span class="kit-label">Version Control</span><span class="kit-value">Git · GitHub</span></div>
     <div class="kit-row"><span class="kit-label">Workflow</span><span class="kit-value">Blueprints · Jira · Agile</span></div>
+    <div class="kit-row"><span class="kit-label">RMIT GITHUB</span><span class="kit-value"> </span></div>
+    <div class="divider"></div>
+    <p class="kit-label">Commit History</p>
+    <div class="commit-gallery">
 
+        <div class="gallery-item" data-full="assets/gallery_1.png">
+            <img src="assets/gallery_1.png" alt="Object pooling commit, May 2026">
+            <div class="gallery-cap">
+                <span class="g-title">Object Pooling</span>
+                <span class="g-desc">replace SpawnActor with pool</span>
+                <span class="g-hash">bd20f4e</span>
+            </div>
+        </div>
+
+        <div class="gallery-item" data-full="assets/gallery_2.png">
+            <img src="assets/gallery_2.png" alt="Object pooling diff, May 2026">
+            <div class="gallery-cap">
+                <span class="g-title">Pooling Diff</span>
+                <span class="g-desc">the before/after change</span>
+                <span class="g-hash">bd20f4e</span>
+            </div>
+        </div>
+
+        <div class="gallery-item" data-full="assets/gallery_3.png">
+            <img src="assets/gallery_3.png" alt="Nearest enemy commit, May 2026">
+            <div class="gallery-cap">
+                <span class="g-title">Nearest Enemy</span>
+                <span class="g-desc">closest-target search</span>
+                <span class="g-hash">c6ce204</span>
+            </div>
+        </div>
+
+        <div class="gallery-item" data-full="assets/gallery_4.png">
+            <img src="assets/gallery_4.png" alt="Nearest enemy diff">
+            <div class="gallery-cap">
+                <span class="g-title">Nearest Enemy Diff</span>
+                <span class="g-desc">overlap + distance scan</span>
+                <span class="g-hash">c6ce204</span>
+            </div>
+        </div>
+
+    </div>
     <div class="left-foot">
-        <p class="tiny">GAME DEV NOTES<br>Systems, problems, fixes.</p>
+        <p class="tiny">GAME DEV DIARY</p>
     </div>
 </aside>
 
 <!-- ═══════════ MIDDLE : CONTENT ═══════════ -->
 <main class="blog-col">
     <div class="blog-intro">
-        <p class="eyebrow">Engineering notes</p>
-        <h1>Systems, problems, and the fixes behind them.</h1>
-        <p>Short write-ups on the code I build. Each one starts with a real problem I hit, works out what was causing it, and keeps the honest limitations in. Mostly <strong>Alchemist TD</strong>, my solo tower-defence game in Unreal Engine 5 &mdash; plus where the ideas started.</p>
+        <p class="eyebrow">Notes &amp; Reflections</p>
+        <h1>How I think through the systems I build.</h1>
+        <p>Reflections on what I build, the problem, the process in thinking about the problem, the fix, and what I took from it.</p>
     </div>
 
     <!-- ───── POST 1 : POOLING ───── -->
     <article id="post-pooling">
-        <p class="post-eyebrow"><span class="note-id">NOTE-03</span> Alchemist TD · Memory &amp; lifetime <span class="badge badge-solo">Solo · UE5 · C++</span></p>
+        <p class="post-eyebrow">
+            <span class="note-id">NOTE-03 · DEV SESSION 17</span>
+            <span class="eyebrow-meta">MAY 9 2026 · Alchemist TD · Memory &amp; lifetime · Solo · UE5 · C++</span>
+        </p>
         <h2>Object pooling for enemies</h2>
         <p class="dek">Reusing enemies instead of creating and destroying them.</p>
 
-        <div class="shot"><img src="gameplay_hero.png" alt="Alchemist TD gameplay: waves of skeletons pouring from a portal as the player throws potions."></div>
-        <p class="shot-cap">Alchemist TD, running. Enemies spawn and die continuously as potions are thrown into the crowd &mdash; the exact stress that used to crash the game, now handled by the pool.</p>
+        <div class="shot"><img src="assets/gameplay_hero.png" alt="Alchemist TD gameplay: Spamming potions into waves of enemies will no longer result in an ERROR_ACCESS_VIOLATION"></div>
+        <p class="shot-cap"><em>Alchemist TD gameplay. I spam potions into waves of enemies. This no longer causes an ERROR_ACCESS VIOLATION, as enemy spawning is handled by object pooling </em></p>
 
         <div class="exec">
-            <div class="exec-row principle"><div class="k">Principle</div><div class="v">Pay the cost once at the start, not repeatedly during play. Create every enemy once when the level loads, then reuse them.</div></div>
-            <div class="exec-row problem"><div class="k">Problem</div><div class="v">Spawning on a looping timer and destroying enemies on death left the timer holding pointers to enemies that no longer existed &mdash; a crash under stress.</div></div>
-            <div class="exec-row fix"><div class="k">Fix</div><div class="v">Pre-spawn a pool, hidden and switched off. Activate one when needed; return it to the pool on death instead of destroying it &mdash; which let me remove the looping timer entirely.</div></div>
-            <div class="exec-row lesson"><div class="k">Key lesson</div><div class="v">The crash wasn't patched &mdash; it was made impossible. Removing the timer and the runtime destruction removed the conditions the crash needed to exist.</div></div>
+            <div class="exec-head"><h2>OBJECT POOLING</h2></div>
+            <div class="exec-row principle"><div class="k">Principle</div><div class="v">Create every enemy once when the level loads, then reuse them.</div></div>
+            <div class="exec-row problem"><div class="k">Problem</div><div class="v">Killing enemies really fast caused an access violation.</div></div>
+            <div class="exec-row fix"><div class="k">Fix</div><div class="v">Pre-spawn a pool of monsters that are hidden and switched off (disable tick, mesh, and collision components). Activate one when needed; return it to the pool on death instead of destroying it, which let me remove the looping timer entirely.</div></div>
+            <div class="exec-row lesson"><div class="k">Key lesson</div><div class="v">Understand the lifetime of your functions, timers, and objects. A timer that acts on an object that's already been destroyed will crash.</div></div>
         </div>
 
-        <h3><span class="n">01 ·</span> The crash</h3>
-        <p>Under stress &mdash; spamming potions into a dense crowd so enemies died rapidly &mdash; the game crashed:</p>
-        <div class="crashlog">EXCEPTION_ACCESS_VIOLATION writing address <span class="addr">0x528</span><br>&nbsp;&nbsp;in AWaveManager::SpawnBatch lambda &mdash; while clearing the batch list</div>
-        <p>The cause was a dangling pointer. The spawn timer's lambda held raw pointers to the enemies (and to the spawner itself). When an enemy was destroyed before the timer next fired, that pointer was left pointing at memory that had already been freed &mdash; so the timer reached for something that no longer existed. The tiny near-zero address is the fingerprint of exactly that.</p>
-        <p>My first fix was tactical: I switched the enemy references to <code>TWeakObjectPtr</code> (which invalidates automatically when the object is destroyed) and added <code>IsValid</code> guards. That stopped the crash &mdash; but it was still <em>guarding against</em> a dangerous situation rather than removing it.</p>
+        <h3><span class="n">01 ·</span> CRASH: EXCEPTION_ACCESS_VIOLATION</h3>
+        <p>Under stress  spamming potions into a dense crowd so enemies died rapidly  the game crashed:</p>
+        <div class="crashlog">EXCEPTION_ACCESS_VIOLATION writing address <span class="addr">0x0000000000000550</span><br>&nbsp;&nbsp;in AWaveManager::SpawnBatch lambda  while clearing the batch list</div>
+        <p>The cause was a dangling pointer. The spawn timer's lambda held raw pointers to the enemies (and to the spawner itself). When an enemy was destroyed before the timer next fired, that pointer was left pointing at memory that had already been freed  so the timer reached for something that no longer existed. The tiny near-zero address is the fingerprint of exactly that.</p>
+        <p>My first fix was trying to switchthe enemy references to <code>TWeakObjectPtr</code> (which invalidates automatically when the object is destroyed) and added <code>IsValid</code> guards. That stopped the crash  but it was still <em>guarding against</em> a dangerous situation rather than removing it.</p>
 
         <figure>
             <svg viewBox="0 0 860 235" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Three-step reasoning: diagnose the dangling pointer, guard it with smart pointers, then re-architect with pooling so the bug cannot occur.">
@@ -253,8 +450,8 @@
             <figcaption>How I got there: diagnose the pointer, guard it, then remove the situation entirely.</figcaption>
         </figure>
 
-        <h3><span class="n">02 ·</span> The fix — remove the situation, not just guard it</h3>
-        <p>The deeper realisation was that the danger only existed because of the looping spawn timer. So instead of guarding the timer, I removed the need for it. In my notes at the time: <em>&ldquo;the bug class doesn't get fixed &mdash; it ceases to be possible.&rdquo;</em></p>
+        <h3><span class="n">02 ·</span> REDESIGNING SPAWN ARCHITECTURE</h3>
+        <p></p>
         <div class="ba">
             <div>
                 <h4><span class="tag tag-b">before</span> allocate every spawn</h4>
@@ -291,8 +488,10 @@ EnemyPool-&gt;ReturnToPool(<span class="key">this</span>);
         </div>
         <p class="commit">commit bd20f4e · &ldquo;implement object pooling — replace SpawnActor with pre-spawned enemy pool&rdquo; · 9 May 2026</p>
 
-        <p style="margin-top:22px;">The pool itself is a map from each enemy type to an array of reusable instances. Which classes exist and how many to pre-spawn are set in the editor &mdash; so adding a new enemy type or level is a configuration change, not a code change.</p>
-        <span class="filepath">EnemyPoolComponent.h</span>
+        <p style="margin-top:22px;">The pool itself is a map from each enemy type to an array of reusable enemy instances. The level's enemy types and quantity per enemy to pre-spawn are set in the editor by the designer via the UPROPERTY macro, so adding a new enemy type or level is a simple editor change, not a code change.</p>
+
+        <!-- header declaration: full width, on its own -->
+        <span class="filepath">EnemyPoolComponent.h - DECLARATION </span>
         <pre><code><span class="cmt">/*  UEnemyPoolComponent
  *   Owns all pre-spawned enemy actors for the level.
  *   One array per enemy type; all spawned once at load, then reused. */</span>
@@ -304,27 +503,98 @@ EnemyPool-&gt;ReturnToPool(<span class="key">this</span>);
     <span class="typ">AEnemyBase</span>* GetFromPool(<span class="typ">EEnemyType</span> Type); <span class="cmt">// check out a free instance</span>
     <span class="key">void</span> ReturnToPool(<span class="typ">AEnemyBase</span>* Enemy);   <span class="cmt">// reset + hand back on death</span></code></pre>
 
-        <h3><span class="n">03 ·</span> Limitation — and what I'd improve</h3>
+        <!-- implementations: side by side -->
+    
+                <span class="filepath">EnemyPoolComponent.cpp — IMPLEMENTATION - GetFromPool</span>
+                <pre><code><span class="typ">AEnemyBase</span>* UEnemyPoolComponent::GetFromPool(<span class="typ">EEnemyType</span> EnemyType)
+{
+    <span class="typ">TArray</span>&lt;<span class="typ">TObjectPtr</span>&lt;<span class="typ">AEnemyBase</span>&gt;&gt;* TypePool = Pool.Find(EnemyType);
+    <span class="key">if</span> (!TypePool)
+    {
+        <span class="cmt">// no pool for this type — was InitializePool called?</span>
+        <span class="key">return</span> <span class="key">nullptr</span>;
+    }
+
+    <span class="cmt">// walk this type's array by reference; return first free instance</span>
+    <span class="key">for</span> (<span class="typ">TObjectPtr</span>&lt;<span class="typ">AEnemyBase</span>&gt;&amp; EnemyPtr : *TypePool)
+    {
+        <span class="key">if</span> (!IsValid(EnemyPtr)) <span class="key">continue</span>;   <span class="cmt">// skip invalid</span>
+        <span class="key">if</span> (EnemyPtr-&gt;bIsInUse)  <span class="key">continue</span>;   <span class="cmt">// skip ones already alive</span>
+        Activate(EnemyPtr);
+        <span class="key">return</span> EnemyPtr;                     <span class="cmt">// hand back the real reference</span>
+    }
+
+    <span class="cmt">// nothing free — pool sized too small for this wave</span>
+    <span class="key">return</span> <span class="key">nullptr</span>;
+}</code></pre>
+       
+                <span class="filepath">EnemyPoolComponent.cpp — IMPLEMENTATION -  ReturnToPool</span>
+                <pre><code><span class="key">void</span> UEnemyPoolComponent::ReturnToPool(<span class="typ">AEnemyBase</span>* Enemy)
+{
+    <span class="key">if</span> (!IsValid(Enemy)) <span class="key">return</span>;
+    Enemy-&gt;GetWorldTimerManager().ClearTimer(Enemy-&gt;ChaseTimer);
+
+    Enemy-&gt;OnReturnToPool();
+    Enemy-&gt;CurrentWaypointIndex = 0;
+    Enemy-&gt;bIsDead        = <span class="key">false</span>;
+    Enemy-&gt;bMovementHeld  = <span class="key">true</span>;
+    Enemy-&gt;bIsInUse       = <span class="key">false</span>;
+    Enemy-&gt;LateralOffset  = 0.f;
+
+    <span class="key">if</span> (IsValid(Enemy-&gt;PhaseManagerRef))
+    {
+        Enemy-&gt;PhaseManagerRef-&gt;OnPhaseChanged.RemoveDynamic(Enemy, &amp;<span class="typ">AEnemyBase</span>::HandlePhaseChanged);
+    }
+    Enemy-&gt;PhaseManagerRef = <span class="key">nullptr</span>;
+    Enemy-&gt;WaveManagerRef  = <span class="key">nullptr</span>;
+
+    <span class="cmt">// Stop AI movement</span>
+    <span class="key">if</span> (<span class="typ">AAIController</span>* AI = Cast&lt;<span class="typ">AAIController</span>&gt;(Enemy-&gt;GetController()))
+    {
+        AI-&gt;StopMovement();
+    }
+
+    <span class="cmt">// Clear status effects</span>
+    <span class="key">if</span> (IsValid(Enemy-&gt;StatusEffectComponent))
+    {
+        Enemy-&gt;StatusEffectComponent-&gt;OnStatusApplied.RemoveDynamic(Enemy, &amp;<span class="typ">AEnemyBase</span>::OnStatusApplied);
+        Enemy-&gt;StatusEffectComponent-&gt;OnStatusExpired.RemoveDynamic(Enemy, &amp;<span class="typ">AEnemyBase</span>::OnStatusExpired);
+    }
+
+    Deactivate(Enemy);
+}</code></pre>
+            </div>
+        </div>
+        <h3><span class="n">03 ·</span> REFLECTION </h3>
         <div class="note">
-            <p class="lbl">Honest reflection</p>
-            <p>Writing this up, I looked again at how I take an enemy from the pool, and I can see the weak point. The pool is a map from each enemy type to an array of that type's enemies. When I need one, I start at index 0 and walk along until I find one that's switched off and free to use.</p>
-            <p>At my current scale &mdash; around 100 of a type &mdash; that's cheap. But it doesn't scale cleanly. If the game grew to many enemy types with pools in the thousands each, and a large mixed group died in the same tick, then in that single frame the game would be scanning from the start of <em>each</em> type's array looking for free slots. The more enemies and the bigger the pools, the longer that search takes.</p>
-            <p>The fix I'd reach for is to stop searching: keep a separate list of the enemies that are already free, so taking one is instant &mdash; grab the next free one directly, and put it back on the list when it's done. That turns a search into a lookup. Reasoning about how cost grows as the numbers grow is exactly what I'm looking forward to learning to do properly.</p>
+            <p class="lbl">Limitations</p>
+            <p>Whilst writing this post, I was brainstorming the edge cases and limits of this architecture and one limit I thought of was that my GetFromPool() function searches a usable enemy instance via a walk.
+            At this stage, I have only 3 enemy types and a hundred of them each per type. However, I need to consider later stages of the game when there are tens of enemy types with thousands of enemies. If a large mixed group of enemies die in the same tick, then in that single frame the game would be scanning from the start of each type's array looking for the slow.
+            The more enemies and biggerthe pools the longer that takes. A solution could potentially be keeping a seperate list of enemies that are currently free. This means that accessing that list, the first index would always give me an enemy. 
         </div>
     </article>
 
     <!-- ───── POST 2 : NEAREST ENEMY ───── -->
     <article id="post-nearest">
-        <p class="post-eyebrow"><span class="note-id">NOTE-02</span> Alchemist TD · Search <span class="badge badge-solo">Solo · UE5 · C++</span></p>
+        <p class="post-eyebrow">
+            <span class="note-id">NOTE-02 · DEV SESSION 29</span>
+            <span class="eyebrow-meta">MAY 18 2026 · Alchemist TD · Search · Vectors · Solo · UE5 · C++</span>
+        </p>
         <h2>Finding the nearest enemy</h2>
-        <p class="dek">Narrow the field first, then scan for the closest.</p>
+        <p class="dek">Search efficiently.</p>
 
-        <div class="frame">
-            <p>When the objective gets dropped on the ground, one enemy needs to break off and run to pick it up. I needed the closest living enemy to a point.</p>
-            <p>Rather than measure the distance to every enemy in the level, I first ask the physics system for only the enemies inside a radius around the point &mdash; that throws out everything far away in one step. Then I go through that much smaller list and keep the closest one.</p>
+        <div class="shot"><img src="assets/2026_07_08_nearest_enemy.png" alt="Alchemist TD: Radial Enemy Query"></div>
+        <p class="shot-cap"><em>Alchemist TD: When the objective (teddy in img) is dropped on the ground. The closest enemy rushes to capture it.</em></p>
+
+        <div class="exec">
+            <div class="exec-head"><h2>NEAREST ENEMY</h2></div>
+            <div class="exec-row principle"><div class="k">Principle</div><div class="v">Filter down to a small set first, then perform calculations.</div></div>
+            <div class="exec-row problem"><div class="k">Problem</div><div class="v">When the objective is dropped, one enemy needs to retrieve it. I needed the closest enemy to a point, without measuring every enemy in the level.</div></div>
+            <div class="exec-row fix"><div class="k">Fix</div><div class="v">Spawn a collision sphere at the point and get back only the enemies overlapping it. Then iterate that smaller set, building a vector from each enemy to the centre to measure distance, and keep the closest.</div></div>
+            <div class="exec-row lesson"><div class="k">Key lesson</div><div class="v"> Cut down on how much you search. A cheap filter (the radius query) means the costly step (measuring distance) only runs on a handful of candidates, not the whole level. I avoided GetAllActorsOfClass, which would iterate every actor in the level. The overlap sphere gives me only the nearby enemies, so I'm never scanning the whole world.</div></div>
         </div>
-
-        <span class="filepath">PhaseManager.cpp</span>
+        <br>
+        <span class="filepath">PhaseManager.cpp - IMPLEMENTATION - FindClosestEnemy()</span>
         <pre><code><span class="cmt">// Returns the closest living enemy within Radius of Location.</span>
 <span class="typ">AEnemyBase</span>* APhaseManager::FindClosestEnemy(<span class="typ">FVector</span> Location, <span class="key">float</span> Radius,
                                           <span class="typ">AActor</span>* ActorToIgnore) <span class="key">const</span>
@@ -361,23 +631,33 @@ EnemyPool-&gt;ReturnToPool(<span class="key">this</span>);
 }</code></pre>
 
         <div class="note">
-            <p class="lbl">Honest limitation</p>
-            <p>The radius query does the heavy lifting &mdash; it means I only ever measure distance against the handful of enemies nearby, not the whole level. If I ever needed the nearest enemy out of thousands with no radius to lean on, walking the list one by one would start to cost, and I'd want a structure that carves up space so you don't have to check every candidate. For this game's counts, the radius filter keeps it cheap.</p>
+            <p class="lbl">REFLECTION </p>
+            <p> Overlap and Hit are different in Unreal, and I had to be deliberate about which I used. A <em>Hit</em> fires when two things physically block each other and stop like a projectile striking a wall. An <em>Overlap</em> fires when they pass through each other and the engine just reports the contact like walking through a trigger zone. Here I only want to <em>detect</em> which enemies are inside the sphere, not stop or block them, so an overlap query is the right choice, a hit would imply the sphere is a solid barrier, which it isn't.</p>
         </div>
     </article>
 
     <!-- ───── POST 3 : THANKS CARL ───── -->
     <article id="post-thankscarl">
-        <p class="post-eyebrow"><span class="note-id">NOTE-01</span> Thanks Carl · Where it started <span class="badge badge-group">Group · Unity · C#</span></p>
-        <h2>Learning structs on Thanks Carl</h2>
-        <p class="dek">The university project where the data-driven idea began.</p>
+        <p class="post-eyebrow">
+            <span class="note-id">NOTE-01 · RMIT PROJECT</span>
+            <span class="eyebrow-meta">MAY 9 2026 · Thanks Carl · Structs · GROUP · UNITY · C#</span>
+        </p>
+        <h2>ThanksCarl Development Highlights</h2>
+        <p class="dek">Virtual Reality - Tower Defense Crafting Potions</p>
 
+              
         <div class="frame">
-            <p><strong>This was a group project</strong> &mdash; an RMIT team game built with the lead developer, Marven. My contributions were the <strong>enemy spawning</strong>, the <strong>enemy movement</strong>, and the <strong>waves and levels system</strong>. I'm including it because it's where I first learned the idea that runs through all my solo work since: <em>drive the game from data, not hard-coded logic.</em></p>
+            <p><strong>This was a group project</strong>  an RMIT team game built with the lead developer M.W. with three other team members. My contributions were the <strong>enemy spawning</strong>, the <strong>enemy movement</strong>, and the <strong>waves and levels system</strong></p>
         </div>
-
-        <h3><span class="n">01 ·</span> Repurposing a drop table into a spawner</h3>
-        <p>Marven had built a random drop table for crafting ingredients. I realised the same idea worked for enemies: if it can randomly pick from a table of ingredients and produce one, I could swap the objects for monsters and get a <strong>randomised wave composition</strong> &mdash; so every playthrough gives a different mix of enemies, and the player can't lean on one repeated strategy.</p>
+        <br>
+        <a class="btn-link" href="https://github.com/rmit-computing-technologies/potion-maker-potion-makers/commits?author=TuanTriet" target="_blank" rel="noopener">
+            <svg viewBox="0 0 24 24" fill="currentColor" width="14" height="14"><path d="M12 2C6.5 2 2 6.6 2 12.3c0 4.5 2.9 8.3 6.8 9.7.5.1.7-.2.7-.5v-1.7c-2.8.6-3.4-1.4-3.4-1.4-.5-1.2-1.1-1.5-1.1-1.5-.9-.6.1-.6.1-.6 1 .1 1.5 1 1.5 1 .9 1.5 2.3 1.1 2.9.8.1-.7.3-1.1.6-1.4-2.2-.3-4.6-1.1-4.6-5 0-1.1.4-2 1-2.7-.1-.3-.4-1.3.1-2.7 0 0 .8-.3 2.7 1 .8-.2 1.6-.3 2.5-.3s1.7.1 2.5.3c1.9-1.3 2.7-1 2.7-1 .5 1.4.2 2.4.1 2.7.6.7 1 1.6 1 2.7 0 3.9-2.3 4.7-4.6 5 .4.3.7.9.7 1.9v2.8c0 .3.2.6.7.5 3.9-1.4 6.8-5.2 6.8-9.7C22 6.6 17.5 2 12 2z"/></svg>
+            View my commits on the Thanks Carl repo →
+        </a>
+        <br>
+        
+        <h3><span class="n">01 ·</span> DROP TABLE (LOOT CHANCE) LOGIC ABSTRACTION FOR SPAWNING MONSTERS</h3>
+        <p>M.W had built a random drop table for crafting ingredients. I realised the same idea worked for enemies: if it can randomly pick from a table of ingredients and produce one, I could swap the objects for monsters and get a <strong>randomised wave composition</strong>  so every playthrough gives a different mix of enemies, and the player can't lean on one repeated strategy.</p>
         <p>I repurposed it into <code>RunMinionDropTable()</code>, spawning monsters into a spawn area at the end of the combat zone, then pushing each one toward a target at the cauldron.</p>
         <span class="filepath">Spawner.cs — the weighted picker (my contribution)</span>
         <pre><code><span class="cmt">// NEW PICKER WITH WEIGHTING</span>
@@ -392,8 +672,8 @@ EnemyPool-&gt;ReturnToPool(<span class="key">this</span>);
 em.endzoneTrigger = endZoneVolume;
 em.endLookTarget  = endLookTarget;</code></pre>
 
-        <h3><span class="n">02 ·</span> My first real use of structs</h3>
-        <p>The waves-and-levels system was the part I'm proudest of from that project, because it was my <strong>first real move into structs</strong>. I'd seen how Marven used them and understood why: a struct lets you define the <em>shape</em> of a wave once, then fill in many of them from the Unity inspector without touching code. A level became an array of waves; each wave carried its own count, batch size, timing, and enemy table.</p>
+        <h3><span class="n">02 ·</span> STRUCTS WITHIN STRUCTS </h3>
+        <p>The waves-and-levels system was the part I'm proudest of from this project, because I was able to create an inspector tool so my teammates could easily edit waves and test the game. A struct lets you define the <em>shape</em> of a wave once, then fill in many of them from the Unity inspector without touching code. A level became an array of waves; each wave carried its own count, batch size, timing, and enemy table.</p>
         <span class="filepath">LevelManager.cs — the wave/level structs (my contribution)</span>
         <pre><code>[<span class="typ">Serializable</span>] <span class="cmt">// Wave config — editable in the inspector</span>
 <span class="key">public struct</span> <span class="typ">WaveConfig</span>
@@ -415,10 +695,8 @@ em.endLookTarget  = endLookTarget;</code></pre>
     <span class="key">public</span> <span class="typ">WaveConfig</span>[] wave; <span class="cmt">// many waves per level</span>
 }</code></pre>
 
-        <div class="note">
-            <p class="lbl">Why this one's here</p>
-            <p>Look at that <code>WaveConfig</code> struct and then back at the pooling post above &mdash; the data-driven wave system in Alchemist TD (enemy types and pool sizes set in the editor, waves defined in a data table) is the direct descendant of this. Thanks Carl is where I learned the idea in a team, in C#. Alchemist TD is where I rebuilt it properly, alone, in C++.</p>
-        </div>
+        <div class="shot"><img src="assets/2026_07_08_level_manager.png" alt="Alchemist TD: LevelManager in Inspector"></div>
+        <p class="shot-cap"><em>In the inspector, designers can simply edit waves and levels. As a level is an array of structures including waves, bosses and level environments. A wave is a structure made up of enemies, time and a table of monsters and spawn chances. </em></p>
     </article>
 
 </main>
@@ -440,6 +718,14 @@ em.endLookTarget  = endLookTarget;</code></pre>
     </a>
 </aside>
 
+
+<div class="lightbox" id="lightbox" aria-hidden="true">
+    <span class="lightbox-close" id="lightboxClose" aria-label="Close">&times;</span>
+    <div class="lightbox-inner">
+        <img src="" alt="" id="lightboxImg">
+        <p class="lightbox-caption" id="lightboxCaption"></p>
+    </div>
+</div>
 <script>
     // active-post highlighting in the right rail as you scroll
     const links = document.querySelectorAll('.post-link');
@@ -455,6 +741,35 @@ em.endLookTarget  = endLookTarget;</code></pre>
     }, { rootMargin: '-30% 0px -60% 0px' });
     document.querySelectorAll('article').forEach(a => obs.observe(a));
 </script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const lb = document.getElementById('lightbox');
+        const lbImg = document.getElementById('lightboxImg');
+        const lbClose = document.getElementById('lightboxClose');
 
+        if (!lb || !lbImg) { console.warn('Lightbox elements missing'); return; }
+
+        document.querySelectorAll('.gallery-item').forEach(function (item) {
+            item.addEventListener('click', function () {
+                const img = item.querySelector('img');
+                lbImg.src = item.dataset.full;
+                lbImg.alt = img.alt;                                    // keep alt on the image
+                document.getElementById('lightboxCaption').textContent = img.alt;  // show it as caption
+                lb.classList.add('open');
+                lb.setAttribute('aria-hidden', 'false');
+            });
+        });
+
+        function closeLightbox(){
+            lb.classList.remove('open');
+            lb.setAttribute('aria-hidden', 'true');
+        }
+        lb.addEventListener('click', closeLightbox);
+        if (lbClose) lbClose.addEventListener('click', closeLightbox);
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape') closeLightbox();
+        });
+    });
+</script>
 </body>
 </html>
