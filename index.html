@@ -424,7 +424,7 @@
         <p>Under stress  spamming potions into a dense crowd so enemies died rapidly  the game crashed:</p>
         <div class="crashlog">EXCEPTION_ACCESS_VIOLATION writing address <span class="addr">0x0000000000000550</span><br>&nbsp;&nbsp;in AWaveManager::SpawnBatch lambda  while clearing the batch list</div>
         <p>The cause was a dangling pointer. The spawn timer's lambda held raw pointers to the enemies (and to the spawner itself). When an enemy was destroyed before the timer next fired, that pointer was left pointing at memory that had already been freed  so the timer reached for something that no longer existed. The tiny near-zero address is the fingerprint of exactly that.</p>
-        <p>My first fix was trying to switchthe enemy references to <code>TWeakObjectPtr</code> (which invalidates automatically when the object is destroyed) and added <code>IsValid</code> guards. That stopped the crash  but it was still <em>guarding against</em> a dangerous situation rather than removing it.</p>
+        <p>My first fix was trying to switch the enemy references to <code>TWeakObjectPtr</code> (which invalidates automatically when the object is destroyed) and added <code>IsValid</code> guards. That stopped the crash  but it was still <em>guarding against</em> a dangerous situation rather than removing it.</p>
 
         <figure>
             <svg viewBox="0 0 860 235" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Three-step reasoning: diagnose the dangling pointer, guard it with smart pointers, then re-architect with pooling so the bug cannot occur.">
@@ -569,8 +569,8 @@ EnemyPool-&gt;ReturnToPool(<span class="key">this</span>);
         <div class="note">
             <p class="lbl">Limitations</p>
             <p>Whilst writing this post, I was brainstorming the edge cases and limits of this architecture and one limit I thought of was that my GetFromPool() function searches a usable enemy instance via a walk.
-            At this stage, I have only 3 enemy types and a hundred of them each per type. However, I need to consider later stages of the game when there are tens of enemy types with thousands of enemies. If a large mixed group of enemies die in the same tick, then in that single frame the game would be scanning from the start of each type's array looking for the slow.
-            The more enemies and biggerthe pools the longer that takes. A solution could potentially be keeping a seperate list of enemies that are currently free. This means that accessing that list, the first index would always give me an enemy. 
+            At this stage, I have only 3 enemy types and a hundred of them each per type. However, I need to consider later stages of the game when there are tens of enemy types with thousands of enemies. If a large mixed group of enemies die in the same tick, then in that single frame the game would be scanning from the start of each type's array looking for a free slot.
+            The more enemies and bigger the pools the longer that takes. A solution could potentially be keeping a separate list of enemies that are currently free. This means that accessing that list, the first index would always give me an enemy. 
         </div>
     </article>
 
