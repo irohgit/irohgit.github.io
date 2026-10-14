@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="en" data-root="../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Flapjack · Iroh Nguyen</title>
+<meta name="description" content="Iroh Nguyen, game programmer in Melbourne. Gameplay, dialogue and audio systems in C++ and Unreal Engine 5.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;800&family=IBM+Plex+Sans:ital,wght@0,400;0,500;1,400&family=Space+Mono:wght@400;700&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+</head>
+<body class="">
+<header class="site-header wrap">
+  <a class="logo" href="../index.html">IROH NGUYEN</a>
+  <nav class="site-nav" aria-label="Main"><a href="../portfolio/index.html" aria-current="page">Portfolio</a><a href="../notes/index.html">Notes</a><a href="../codex/index.html">Codex</a><a href="../about/index.html">About</a></nav>
+</header>
+<main class="wrap case">
+  <a class="more" href="../portfolio/index.html">← Portfolio</a>
+
+  <header class="case-head">
+    <img class="case-media" src="../assets/flapjack.png" alt="Flapjack: the Kraken final boss looming over the player ship">
+    <span class="chip">CASE STUDY · RMIT TEAM PROJECT</span>
+    <h1 class="page-title">Flapjack</h1>
+    <p class="case-lede">A top-down pirate shooter built in Godot by GGEZ Interactive, a student team. Our coordinator commended it as a creative take on the genre with rogue-like elements, and fun to play. I built its dialogue and audio systems, the parallax system, the night ghost-ship level and a bank painter.</p>
+    <div class="details case-facts case-facts-4">
+      <div><span class="kicker">My role</span><span class="v">Sound Lead and Generalist Programmer</span></div>
+      <div><span class="kicker">Team</span><span class="v">GGEZ Interactive · four people</span></div>
+      <div><span class="kicker">Engine</span><span class="v">Godot · GDScript</span></div>
+      <div><span class="kicker">Time limit</span><span class="v">Five weeks</span></div>
+    </div>
+    <div class="shipped">
+      <span class="kicker">What we shipped</span>
+      <ul>
+        <li>Main menu and tutorial</li>
+        <li>Three stages, each with a boss, and a finale boss</li>
+        <li>A small narrative with cutscenes and ending credits</li>
+        <li>An in-level shop and an out-of-level ship upgrade station</li>
+      </ul>
+    </div>
+    <nav class="case-toc" aria-label="Systems on this page">
+      <span class="kicker">Jump to a system</span>
+      <a href="#pooled-audio"><span class="toc-n">01</span>Pooled audio player</a>
+      <a href="#weapon-audio"><span class="toc-n">02</span>Layered weapon audio</a>
+      <a href="#dialogue-system"><span class="toc-n">03</span>Dialogue system</a>
+    </nav>
+  </header>
+
+  <section class="case-section">
+    <h2>The game</h2>
+    <p>You captain a navy ship. After the tutorial, Blackbeard drives you back to the empire's port at the end of stage one, and the run begins again, roguelike style.</p>
+    <p>Gold buys upgrades mid-level. Gin, the meta-currency, buys permanent refits at the upgrade station. The story unfolds through picture cutscenes and in-game dialogue, and closes with ending credits.</p>
+  </section>
+
+  <section class="case-section" id="pooled-audio">
+    <span class="kicker">System 01</span>
+    <h2>Pooled audio player</h2>
+    <div class="case-grid">
+      <div>
+        <h3>Problem</h3>
+        <p>During ideation, each sound was owned by the object that triggered it, so when the object was freed, its sound died with it. For example, a projectile calls <code>queue_free()</code> on impact, destroying its audio player mid-sound. I needed to decouple a sound's lifetime from its source, so I architected a pooled audio player.</p>
+        <h3>Approach</h3>
+        <p>I designed the audio system around three goals.</p>
+        <span class="lead-in">Centralised</span>
+        <p>A single <code>Audio</code> autoload owns all playback. It creates a pool of 32 voices at startup, and any script asks it for a free voice, so a sound outlives whatever fired it. If every voice is busy, the new sound is dropped rather than cutting one off.</p>
+        <span class="lead-in">Extensible</span>
+        <p>Every sound routes through a bus under Master, so a new category is just a new bus. I started with SFX, Music and UI, then added a Cinematic bus for cutscenes without touching the rest.</p>
+        <span class="lead-in">Designer-friendly</span>
+        <p>Sounds, volume and pitch are exported variables, so my teammates could tune the mix in the Inspector. Every effect also gets a ±6% pitch shift, so repeated sounds don't get tiring.</p>
+        <h3>Result</h3>
+        <p>My teammates tuned the audio without needing me. When they didn't like a sound, they swapped it out, rebalanced the mix and adjusted the pitch themselves.</p>
+        <h3>Considerations</h3>
+        <span class="lead-in">Why 32 voices?</span>
+        <p>Preliminary research suggested 32 voices is a common default budget, and it held for most of the game. Then came stage 3: the ghost ship boss summons waves of enemies, and if you don't defeat them fast enough, around 100 enemy ships can stay on screen, all firing at once. The pool hit its limit constantly, and new sounds were being culled.</p>
+        <figure class="inline-shot"><img src="../assets/flapjack_pool_exhausted.png" alt="Godot debugger showing repeated 'SFX pool exhausted, dropping sound' warnings with a stack trace from a cursed projectile"><figcaption>Godot's debugger in the stage 3 fight: the pool is exhausted, and the stack trace runs from a projectile hit to <code>play_sfx()</code>.</figcaption></figure>
+        <p>On review, while writing this up, I noticed the pool drops new sounds when it's full. That avoids cutting sounds off mid-play, but it treats every sound equally, which is something to consider when the team polishes the game.</p>
+        <p>Through further research, I found three techniques that audio middleware uses to solve this, which I'd like to try implementing:</p>
+        <ul class="bullets">
+          <li><strong>Concurrency limits per sound</strong>, so a single sound like an explosion can't take over the pool.</li>
+          <li><strong>Priority and voice stealing</strong>, so important sounds replace the least important one playing.</li>
+          <li><strong>Virtual voices</strong>, so distant or quiet sounds are tracked but not played until they matter.</li>
+        </ul>
+      </div>
+      <figure class="case-shot"><img src="../assets/flapjack_bus_layout.png" alt="Godot Audio panel showing the Master, Music, SFX, UI and Cinematic buses"><figcaption>The bus layout: Music, SFX, UI and Cinematic, all feeding Master.</figcaption>
+        <div class="code-tabs" data-tabs>
+          <div class="code-tabs-head"><span class="code-file">audio.gd · Audio autoload</span><div role="tablist" aria-label="Audio code excerpts"><button type="button" role="tab" id="tab-audio-0" aria-controls="panel-audio-0" aria-selected="true" tabindex="0">Pool</button><button type="button" role="tab" id="tab-audio-1" aria-controls="panel-audio-1" aria-selected="false" tabindex="-1">play_sfx</button><button type="button" role="tab" id="tab-audio-2" aria-controls="panel-audio-2" aria-selected="false" tabindex="-1">Routing</button><button type="button" role="tab" id="tab-audio-3" aria-controls="panel-audio-3" aria-selected="false" tabindex="-1">Cutscene</button><button type="button" role="tab" id="tab-audio-4" aria-controls="panel-audio-4" aria-selected="false" tabindex="-1">Crossfade</button></div></div>
+          <div role="tabpanel" id="panel-audio-0" aria-labelledby="tab-audio-0"><pre><code class="gd"># Simultaneous sound effects.
+const SFX_VOICES := 32
+
+var _sfx_pool: Array[AudioStreamPlayer] = []
+
+func _ready() -&gt; void:
+    process_mode = Node.PROCESS_MODE_ALWAYS
+    for i in SFX_VOICES:
+        var p := AudioStreamPlayer.new()
+        p.bus = &quot;SFX&quot;
+        add_child(p)
+        _sfx_pool.append(p)</code></pre><div class="commit-links"><a class="commit-link" href="https://github.com/irohgit/flapjack/commit/b18d71b42d0dd66d761278ed289e142fc5e808ba" target="_blank" rel="noopener"><span class="ch">commit b18d71b</span> feat: audio system with buses, data-driven SFX... · 14 Aug 2026 ↗</a></div></div><div role="tabpanel" id="panel-audio-1" aria-labelledby="tab-audio-1" hidden><pre><code class="gd"># pitch spread float value gives a variance of +- x percent.
+func play_sfx(stream: AudioStream, volume_db := 0.0, pitch_spread := 0.06, base_pitch := 1.0) -&gt; void:
+    if stream == null:
+        return
+
+    var voice := _free_voice()
+    if voice == null:
+        push_warning(&quot;SFX pool exhausted, dropping sound&quot;)
+        return
+
+    voice.bus = &quot;SFX&quot;
+    voice.stream = stream
+    voice.volume_db = volume_db
+    voice.pitch_scale = base_pitch + randf_range(-pitch_spread, pitch_spread)
+    voice.play()
+
+
+func _free_voice() -&gt; AudioStreamPlayer:
+    for p in _sfx_pool:
+        if not p.playing:
+            return p
+    return null</code></pre><div class="commit-links"><a class="commit-link" href="https://github.com/irohgit/flapjack/commit/b18d71b42d0dd66d761278ed289e142fc5e808ba" target="_blank" rel="noopener"><span class="ch">commit b18d71b</span> feat: audio system with buses, data-driven SFX... · 14 Aug 2026 ↗</a></div></div><div role="tabpanel" id="panel-audio-2" aria-labelledby="tab-audio-2" hidden><pre><code class="gd"># UI sounds bypass the SFX bus so a gameplay volume slider does not silence
+# the menus the player is using to adjust it.
+func play_ui(stream: AudioStream, volume_db := 0.0) -&gt; void:
+    if stream == null:
+        return
+    var voice := _free_voice()
+    if voice == null:
+        return
+    voice.bus = &quot;UI&quot;
+    voice.stream = stream
+    voice.volume_db = volume_db
+    voice.pitch_scale = 1.0
+    voice.play()
+
+# Cutscene audio. Bypasses the Music and SFX buses so the cutscene fade,
+# which ducks those two, does not silence the cutscene itself.
+func play_cinematic(stream: AudioStream, volume_db := 0.0) -&gt; void:
+    ...
+    free_voice.bus = &quot;Cinematic&quot;</code></pre><div class="commit-links"><a class="commit-link" href="https://github.com/irohgit/flapjack/commit/b18d71b42d0dd66d761278ed289e142fc5e808ba" target="_blank" rel="noopener"><span class="ch">commit b18d71b</span> feat: audio system with buses, data-driven SFX... · 14 Aug 2026 ↗</a><a class="commit-link" href="https://github.com/irohgit/flapjack/commit/0e345f4d58455777cd3e94b4e8810a5bb3870478" target="_blank" rel="noopener"><span class="ch">commit 0e345f4</span> wip: cutscene manager · 4 Sep 2026 ↗</a></div></div><div role="tabpanel" id="panel-audio-3" aria-labelledby="tab-audio-3" hidden><pre><code class="gd"># Freezes gameplay audio without touching UI or Cinematic voices, which must
+# keep playing while the tree is paused. Called by CutsceneManager.
+func set_world_paused(is_paused: bool) -&gt; void:
+    _music_a.stream_paused = is_paused
+    _music_b.stream_paused = is_paused
+    for p: AudioStreamPlayer in _sfx_pool:
+        if p.bus == &quot;SFX&quot;:
+            p.stream_paused = is_paused</code></pre><div class="commit-links"><a class="commit-link" href="https://github.com/irohgit/flapjack/commit/0e345f4d58455777cd3e94b4e8810a5bb3870478" target="_blank" rel="noopener"><span class="ch">commit 0e345f4</span> wip: cutscene manager · 4 Sep 2026 ↗</a></div></div><div role="tabpanel" id="panel-audio-4" aria-labelledby="tab-audio-4" hidden><pre><code class="gd"># Two music players so one can fade in while the other fades out.
+func play_music(stream: AudioStream, volume_db := 0.0, fade_time := 1.5) -&gt; void:
+    if stream == null:
+        return
+    if _music_active.stream == stream and _music_active.playing:
+        return
+
+    _force_loop(stream)
+
+    var incoming := _music_b if _music_active == _music_a else _music_a
+    var outgoing := _music_active
+
+    incoming.stream = stream
+    incoming.volume_db = -60.0
+    incoming.play()
+
+    var t := create_tween()
+    t.set_parallel(true)
+    t.tween_property(incoming, &quot;volume_db&quot;, volume_db, fade_time)
+    t.tween_property(outgoing, &quot;volume_db&quot;, -60.0, fade_time)
+    t.set_parallel(false)
+    t.tween_callback(outgoing.stop)
+
+    _music_active = incoming</code></pre><div class="commit-links"><a class="commit-link" href="https://github.com/irohgit/flapjack/commit/b18d71b42d0dd66d761278ed289e142fc5e808ba" target="_blank" rel="noopener"><span class="ch">commit b18d71b</span> feat: audio system with buses, data-driven SFX... · 14 Aug 2026 ↗</a></div></div>
+        </div>
+        <div class="stage-shot"><img src="../assets/flapjack_stage3_boss.png" alt="Flapjack stage 3: the Davy Jones ghost ship boss with a wall of summoned enemy ships"></div>
+        <div class="stage-cap">
+          <span class="stage-title">Stage 3 · Ghost Ship Level</span>
+          <p>Inspired by the cursed, undead crews of Pirates of the Caribbean. Moonlight turns ships ethereal and unkillable, and their shots steal gold instead of dealing damage. Davy Jones summons waves of ships, producing more sounds than the 32-voice SFX pool can play.</p>
+        </div>
+        </figure>
+    </div>
+  </section>
+
+  <section class="case-section" id="weapon-audio">
+    <span class="kicker">System 02</span>
+    <h2>Layered weapon audio</h2>
+    <div class="case-grid">
+      <div>
+        <h3>Problem</h3>
+        <p>As the player upgrades their cannon, the shot should sound more powerful, but recording a whole new sound for every combination of upgrades doesn't scale.</p>
+        <h3>Approach</h3>
+        <p>Every shot plays the base cannon sound, and each upgrade adds its own accent sound on top, such as a plasma layer. The upgrades stack, so the cannon's sound grows with the player's build.</p>
+        <h3>Result</h3>
+        <p class="todo-public">#TODO</p>
+      </div>
+      <figure class="case-shot"><div class="placeholder">[ SHOP / UPGRADE SCREEN ]</div><figcaption>The upgrade shop, where each purchase adds a sound layer.</figcaption></figure>
+    </div>
+  </section>
+
+  <section class="case-section" id="dialogue-system">
+    <span class="kicker">System 03</span>
+    <h2>Dialogue system</h2>
+    <div class="case-grid">
+      <div>
+        <h3>Problem</h3>
+        <p>The cinematic, tutorial and boss encounters all needed lines of dialogue, written by people who shouldn't have to edit scripts or animation timelines to change a line.</p>
+        <h3>Approach</h3>
+        <p>Each line is its own data asset that follows a fixed schema, and lines are sequenced separately from animation. Writers can add or reorder lines without breaking the animations, and animators can change timing without breaking the dialogue.</p>
+        <h3>Result</h3>
+        <p class="todo-public">#TODO</p>
+      </div>
+      <figure class="case-shot"><div class="placeholder">[ DIALOGUE IN GAME ]</div><figcaption>A dialogue line on screen during the opening cinematic.</figcaption></figure>
+    </div>
+  </section>
+
+  <section class="case-section">
+    <h2>What I learned</h2>
+    <p class="todo-public">#TODO</p>
+  </section>
+
+  <section class="case-section">
+    <h2>Links</h2>
+    <p class="todo-public">#TODO</p>
+  </section>
+</main>
+<script src="../assets/code-tabs.js"></script>
+
+<footer class="site-footer">
+  <div class="wrap">
+    <a href="mailto:tuantrietn@gmail.com">tuantrietn@gmail.com</a>
+    <a href="https://github.com/irohgit" target="_blank" rel="noopener">github.com/irohgit</a>
+    <a href="https://www.linkedin.com/in/tuan-triet-nguyen" target="_blank" rel="noopener">linkedin.com/in/tuan-triet-nguyen</a>
+  </div>
+</footer>
+</body>
+</html>

@@ -1,775 +1,176 @@
-﻿<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html lang="en" data-root="">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Iroh Nguyen — Game Dev Notes</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
-    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600&family=DM+Mono:wght@400;500&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
-        :root{
-            --bg:#faf9f6; --surface:#ffffff; --surface-2:#f2f0ea;
-            --border:rgba(20,22,28,0.10); --border-mid:rgba(20,22,28,0.16);
-            --h1:#161821; --h2:#1f2530; --h3:#2c333f; --body:#454b56;
-            --label:#8a8f99; --caption:#9aa0aa;
-            --accent:#2f6f4f; --accent-dim:rgba(47,111,79,0.10); --accent-border:rgba(47,111,79,0.30);
-            --info:#2f6f4f; --info-dim:rgba(47,111,79,0.10);
-            --red:#b5463a; --red-dim:rgba(181,70,58,0.09);
-            --green:#2f6f4f;
-            --r:8px; --r-lg:12px;
-            --font-sans:'Be Vietnam Pro',sans-serif;
-            --font-mono:'DM Mono',monospace;
-            --font-serif:'Space Grotesk',sans-serif;
-            --font-display:'Space Grotesk',sans-serif;
-        }
-        .btn-link{
-            display:inline-flex;align-items:center;gap:10px;
-            font-family:var(--font-mono);font-size:13px;font-weight:500;
-            color:#fff;background:var(--accent);
-            text-decoration:none;border:1px solid var(--accent);
-            border-radius:var(--r);
-            padding:16px 26px;              /* generous — gives it real presence */
-            margin:8px 0 4px;
-            transition:transform .15s, box-shadow .15s, background .15s;
-            box-shadow:0 2px 10px rgba(47,111,79,0.18);
-        }
-        .btn-link:hover{
-            background:#28603f;             /* slightly darker green on hover */
-            transform:translateY(-2px);     /* lifts — feels clickable */
-            box-shadow:0 6px 18px rgba(47,111,79,0.28);
-        }
-        .btn-link svg{width:16px;height:16px;}
-        /* thumbnails in the rail */
-
-        /* ── COMMIT GALLERY ── */
-        .commit-gallery{
-            display:flex;
-            flex-direction:column;
-            gap:10px;
-            margin-top:10px;
-        }
-
-        .gallery-item{
-            container-type:inline-size;   /* ← this lets children size off THIS element's width */
-            position:relative;
-            border:1px solid var(--border);
-            border-radius:6px;
-            overflow:hidden;
-            cursor:zoom-in;
-            transition:border-color .15s, transform .15s;
-        }
-        .gallery-item:hover{
-            border-color:var(--accent);
-            transform:translateY(-1px);
-        }
-
-        /* the screenshot — greyscale by default, full colour on hover */
-        .gallery-item img{
-            width:100%;
-            display:block;
-            filter:grayscale(100%) contrast(.95) brightness(1.02);
-            transition:filter .2s;
-        }
-        .gallery-item:hover img{
-            filter:none;
-        }
-
-        /* caption overlay: title top-left, desc under it, hash bottom-left */
-        .gallery-cap{
-            position:absolute;
-            inset:0;
-            display:flex;
-            flex-direction:column;
-            align-items:flex-start;
-            background:linear-gradient(rgba(20,22,28,0.35), rgba(20,22,28,0.9));
-            color:#fff;
-            padding:12px;
-            font-family:var(--font-display);
-            font-size:13px;          /* the base — everything below is relative to THIS */
-        }
-        .g-title{
-            font-weight:500;
-            color:#fff;
-            letter-spacing:.02em;
-        }
-  
-        .g-desc{
-            color:rgba(255,255,255,0.85);
-            margin-top:0.4em;
-            line-height:1.4;
-        }
-        .g-hash{
-            color:var(--accent);
-            margin-top:auto;
-            font-family:var(--font-mono);
-        }
-        .g-title{ font-size:clamp(14px, 7cqw, 24px); }
-        .g-desc{  font-size:clamp(12px, 5.5cqw, 20px); }
-        .g-hash{  font-size:clamp(12px, 5.5cqw, 20px); }
-        /* the lightbox overlay */
-        .lightbox{
-            display:none;position:fixed;inset:0;z-index:1000;
-            background:rgba(20,22,28,0.88);
-            align-items:center;justify-content:center;
-            padding:40px;cursor:zoom-out;
-            backdrop-filter:blur(50px);
-        }
-        .lightbox.open{display:flex;}
-        .lightbox img{
-            max-width:95%;max-height:92vh;
-            border-radius:8px;box-shadow:0 20px 60px rgba(0,0,0,.5);
-            cursor:default;
-        }
-        .lightbox-close{
-            position:absolute;top:20px;right:30px;
-            font-size:40px;line-height:1;color:#fff;cursor:pointer;
-            opacity:.8;transition:opacity .15s;
-        }
-        .lightbox-close:hover{opacity:1;}
-
-        .lightbox-inner{
-            display:flex;
-            flex-direction:column;
-            align-items:center;
-            max-width:95%;
-            max-height:92vh;
-        }
-        .lightbox-inner img{
-            max-width:100%;
-            max-height:85vh;              /* leave room for the caption below */
-            border-radius:8px;
-            box-shadow:0 20px 60px rgba(0,0,0,.5);
-        }
-        .lightbox-caption{
-            margin-top:14px;
-            font-family:var(--font-mono);
-            font-size:13px;
-            color:rgba(255,255,255,0.85);
-            text-align:center;
-            max-width:60ch;
-        }
-        /* wide two-column code section that breaks past the reading column */
-        .code-duo{
-            display:grid;
-            grid-template-columns:1fr 1fr;
-            gap:16px;
-            width:min(1180px, 92vw);          /* wider than the 820px column */
-            margin-left:50%;
-            transform:translateX(-50%);        /* re-center the wider block */
-            margin-top:16px;
-        }
-        .code-duo .filepath{margin-top:0;}
-        .code-duo pre{margin:6px 0 0;}
-        @media(max-width:900px){
-            .code-duo{grid-template-columns:1fr;width:100%;margin-left:0;transform:none;}
-        }
-        html{scroll-behavior:smooth;}
-        body{background:var(--bg);color:var(--body);font-family:var(--font-sans);
-            font-size:14px;line-height:1.6;min-height:100vh;
-            display:grid;grid-template-columns:17% 1fr 16%;}
-        ::selection{background:var(--accent-dim);color:var(--accent);}
-
-        /* ── LEFT RAIL (fixed) ── */
-        .left-col{padding:40px 26px;border-right:1px solid var(--border);
-            position:sticky;top:0;height:100vh;overflow-y:auto;scrollbar-width:none;
-            display:flex;flex-direction:column;}
-        .left-col::-webkit-scrollbar,.right-col::-webkit-scrollbar{display:none;}
-        .site-name{font-family:var(--font-display);font-size:20px;font-weight:600;color:var(--h1);line-height:1.1;
-            letter-spacing:-.01em;margin-bottom:6px;}
-        .site-role{font-size:11px;color:var(--body);letter-spacing:.06em;margin-bottom:4px;}
-        .divider{height:1px;background:var(--border);margin:18px 0; flex:none;}
-        .kicker{font-family:var(--font-mono);font-size:9px;color:var(--label);
-            text-transform:uppercase;letter-spacing:.14em;margin-bottom:10px;}
-        .contact-item{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--body);
-            margin-bottom:8px;text-decoration:none;transition:color .15s;word-break:break-all;}
-        .contact-item:hover{color:var(--accent);}
-        .contact-icon{width:13px;height:13px;opacity:.5;flex-shrink:0;}
-        .kit-row{margin-bottom:13px;}
-        .kit-label{display:block;font-family:var(--font-mono);font-size:9px;color:var(--label);
-            text-transform:uppercase;letter-spacing:.12em;margin-bottom:3px;}
-        .kit-value{display:block;font-size:11.5px;color:var(--body);line-height:1.5;}
-        .left-foot{margin-top:auto;padding-top:24px;}
-        .left-foot .tiny{font-family:var(--font-mono);font-size:9px;color:var(--caption);
-            letter-spacing:.1em;line-height:1.7;}
-
-        /* ── MIDDLE (scrolling content) ── */
-        .blog-col{padding:56px 60px 120px;max-width:820px;margin:0 auto;}
-        .blog-intro{margin-bottom:8px;}
-        .blog-intro .eyebrow{font-family:var(--font-mono);font-size:10px;color:var(--accent);
-            letter-spacing:.16em;text-transform:uppercase;margin-bottom:16px;}
-        .blog-intro h1{font-family:var(--font-display);font-size:38px;font-weight:600;
-            color:var(--h1);line-height:1.08;letter-spacing:-.02em;margin-bottom:16px;}
-        .blog-intro p{font-size:15px;color:var(--body);max-width:60ch;}
-        .blog-intro p strong{color:var(--h2);font-weight:500;}
-
-        article{padding:52px 0;border-top:1px solid var(--border);scroll-margin-top:30px;}
-        .post-eyebrow{
-            display:flex;
-            flex-direction:column;      /* stack: chip on line 1, meta on line 2 */
-            align-items:flex-start;     /* left-aligned */
-            gap:8px;
-            font-family:var(--font-mono);font-size:10px;letter-spacing:.14em;
-            text-transform:uppercase;color:var(--label);margin-bottom:12px;
-        }
-        .post-eyebrow .note-id{
-            background:var(--accent);color:#fff;padding:3px 10px;border-radius:4px;
-            letter-spacing:.06em;font-weight:500;
-        }
-        .eyebrow-meta{color:var(--label);}   /* the date+tags line, muted */
-        .post-eyebrow .badge{font-size:9px;padding:2px 8px;border-radius:999px;letter-spacing:.08em;}
-        .badge-solo{background:var(--accent-dim);color:var(--accent);border:1px solid var(--accent-border);}
-        .badge-group{background:var(--info-dim);color:var(--info);border:1px solid rgba(74,143,201,.28);}
-        article h2{font-family:var(--font-display);font-size:28px;font-weight:600;color:var(--h1);
-            line-height:1.12;margin-bottom:8px;letter-spacing:-.02em;}
-        article .dek{font-size:13px;color:var(--body);font-style:italic;margin-bottom:26px;}
-        article h3{font-size:15px;color:var(--h2);font-weight:600;margin:34px 0 12px;
-            display:flex;align-items:baseline;gap:10px;}
-        article h3 .n{font-family:var(--font-mono);font-size:11px;color:var(--accent);}
-        article p{font-size:14.5px;color:var(--body);margin-bottom:15px;max-width:150ch;}
-        article p strong{color:var(--h3);font-weight:500;}
-        article em{color:var(--h3);font-style:italic;}
-        code{font-family:var(--font-mono);font-size:.88em;background:var(--surface-2);
-            padding:1px 6px;border-radius:4px;color:var(--h3);}
-
-        /* hero image */
-        .shot{margin:0 0 12px;border-radius:var(--r-lg);overflow:hidden;border:1px solid var(--border-mid);}
-        .shot img{width:100%;display:block;}
-        .shot-cap{font-family:var(--font-mono);font-size:11px;color:var(--caption);
-            line-height:1.6;margin:0 auto 30px; max-width:150ch;}
-
-        /* exec summary */
-        .exec{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);
-            padding:6px 26px;margin:6px 0 8px;}
-        .exec-row{display:grid;grid-template-columns:140px 1fr;gap:6px 24px;padding:18px 0;
-            border-bottom:1px solid var(--border);align-items:start;}
-        .exec-row:last-child{border-bottom:none;}
-        .exec-row .k{font-family:var(--font-mono);font-size:12px;letter-spacing:.08em;
-            text-transform:uppercase;padding-top:3px;color:var(--accent);}
-        .exec-row .v{font-size:16px;color:var(--h2);line-height:1.55;}
-        @media(max-width:600px){.exec-row{grid-template-columns:1fr;gap:3px;}}
-        .exec-head{text-align:center;padding:16px 0 4px;}
-        .exec-head h2{font-family:var(--font-display);font-size:15px;font-weight:600;
-            letter-spacing:.08em;color:var(--h2);margin:0;}
-        
-        /* frames (dev voice) */
-        .frame{border-left:2px solid var(--accent);background:var(--accent-dim);
-            padding:15px 20px;border-radius:0 var(--r) var(--r) 0;margin:0 0 24px;}
-        .frame p{margin:0;color:var(--h3);} .frame p+p{margin-top:10px;}
-
-        /* code */
-        pre{margin:16px 0;background:#1c2029;color:#e2e5ea;border:1px solid #2a2f3a;
-            border-radius:var(--r);padding:18px;overflow-x:auto;font-family:var(--font-mono);
-            font-size:12.5px;line-height:1.65;width:100%;}
-        pre code{background:none;padding:0;color:inherit;font-size:inherit;}
-        .cmt{color:#7c8698;}.key{color:#8fb3ff;}.typ{color:#7fd6c2;}.str{color:#e0b57a;}
-        .filepath{font-family:var(--font-mono);font-size:11px;color:var(--caption);margin:0 0 6px;display:block;}
-        .commit{font-family:var(--font-mono);font-size:12px;color:var(--accent);
-            background:var(--accent-dim);border:1px solid var(--accent-border);
-            padding:10px 16px;border-radius:var(--r);display:block;width:100%;max-width:none;
-            margin:14px 0 0;box-sizing:border-box;line-height:1.6;}
-        .crashlog{background:#1c2029;border:1px solid #4a2f2b;border-radius:var(--r);padding:13px 18px;
-            font-family:var(--font-mono);font-size:12px;color:#e8a89f;margin:0 0 18px;overflow-x:auto;line-height:1.6;width:100%;}
-        .crashlog .addr{color:#ff9d92;font-weight:500;}
-
-        /* before/after */
-        .ba{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:6px 0;}
-        .ba h4{font-family:var(--font-mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;
-            margin-bottom:8px;display:flex;gap:8px;align-items:center;color:var(--body);}
-        .tag{font-size:9px;padding:2px 8px;border-radius:999px;letter-spacing:.06em;}
-        .tag-b{background:var(--red-dim);color:var(--red);}
-        .tag-a{background:var(--accent-dim);color:var(--accent);}
-        @media(max-width:680px){.ba{grid-template-columns:1fr;}}
-
-        /* note */
-        .note{border:1px dashed var(--border-mid);border-radius:var(--r);padding:16px 20px;
-            margin:24px 0 0;background:var(--surface);}
-        .note .lbl{font-family:var(--font-mono);font-size:10px;letter-spacing:.12em;
-            text-transform:uppercase;color:var(--accent);margin-bottom:8px;}
-        .note p{margin-bottom:12px;color:var(--body);}.note p:last-child{margin-bottom:0;}
-
-        /* diagram */
-        figure{margin:26px 0 0;}
-        figure svg{width:100%;height:auto;display:block;}
-        figcaption{font-family:var(--font-mono);font-size:11px;color:var(--caption);
-            margin-top:10px;text-align:center;line-height:1.6;}
-
-        /* ── RIGHT RAIL (fixed post list) ── */
-        .right-col{padding:56px 26px;border-left:1px solid var(--border);
-            position:sticky;top:0;height:100vh;overflow-y:auto;scrollbar-width:none;}
-        .right-col .kicker{margin-bottom:18px;}
-        .post-link{display:block;text-decoration:none;padding:12px 0;
-            border-bottom:1px solid var(--border);cursor:pointer;transition:all .15s;}
-        .post-link:last-child{border-bottom:none;}
-        .post-link .pl-title{font-size:12.5px;color:var(--h3);line-height:1.3;
-            display:flex;gap:7px;align-items:baseline;transition:color .15s;}
-        .post-link .pl-num{font-family:var(--font-mono);font-size:10px;color:var(--accent);flex-shrink:0;font-weight:500;}
-        .post-link .pl-meta{font-family:var(--font-mono);font-size:9px;color:var(--label);
-            letter-spacing:.06em;text-transform:uppercase;margin-top:5px;margin-left:52px;}
-        .post-link:hover .pl-title,.post-link.active .pl-title{color:var(--accent);}
-        .post-link:hover .pl-num,.post-link.active .pl-num{color:var(--accent);}
-
-        @media(max-width:1080px){
-            body{grid-template-columns:200px 1fr;}
-            .right-col{display:none;}
-            .blog-col{padding:48px 44px 100px;}
-        }
-        @media(max-width:720px){
-            body{grid-template-columns:1fr;}
-            .left-col{position:static;height:auto;border-right:none;border-bottom:1px solid var(--border);}
-            .blog-col{padding:36px 24px 80px;}
-        }
-        @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto;}}
-    </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Iroh Nguyen · Game Programmer</title>
+<meta name="description" content="Iroh Nguyen, game programmer in Melbourne. Gameplay, dialogue and audio systems in C++ and Unreal Engine 5.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;800&family=IBM+Plex+Sans:ital,wght@0,400;0,500;1,400&family=Space+Mono:wght@400;700&display=swap">
+<link rel="stylesheet" href="assets/site.css">
 </head>
-<body>
-
-<!-- ═══════════ LEFT RAIL ═══════════ -->
-<aside class="left-col">
-    <div class="site-name">Tuấn-Triết (Iroh) Nguyễn</div>
-    <div class="site-role">Game Developer · Melbourne</div>
-    <div class="divider"></div>
-
-    <p class="kicker">Contact</p>
-    <a class="contact-item" href="mailto:tuantrietn@gmail.com">
-        <svg class="contact-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>
-        tuantrietn@gmail.com</a>
-    <a class="contact-item" href="https://github.com/irohgit">
-        <svg class="contact-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.5 2 2 6.6 2 12.3c0 4.5 2.9 8.3 6.8 9.7.5.1.7-.2.7-.5v-1.7c-2.8.6-3.4-1.4-3.4-1.4-.5-1.2-1.1-1.5-1.1-1.5-.9-.6.1-.6.1-.6 1 .1 1.5 1 1.5 1 .9 1.5 2.3 1.1 2.9.8.1-.7.3-1.1.6-1.4-2.2-.3-4.6-1.1-4.6-5 0-1.1.4-2 1-2.7-.1-.3-.4-1.3.1-2.7 0 0 .8-.3 2.7 1 .8-.2 1.6-.3 2.5-.3s1.7.1 2.5.3c1.9-1.3 2.7-1 2.7-1 .5 1.4.2 2.4.1 2.7.6.7 1 1.6 1 2.7 0 3.9-2.3 4.7-4.6 5 .4.3.7.9.7 1.9v2.8c0 .3.2.6.7.5 3.9-1.4 6.8-5.2 6.8-9.7C22 6.6 17.5 2 12 2z"/></svg>
-        github.com/irohgit</a>
-
-    <div class="divider"></div>
-
-    <div class="kit-row"><span class="kit-label">Game Engines</span><span class="kit-value">Unreal Engine · Unity</span></div>
-    <div class="kit-row"><span class="kit-label">Languages</span><span class="kit-value">C++ · C#</span></div>
-    <div class="kit-row"><span class="kit-label">Version Control</span><span class="kit-value">Git · GitHub</span></div>
-    <div class="kit-row"><span class="kit-label">Workflow</span><span class="kit-value">Blueprints · Jira · Agile</span></div>
-    <div class="kit-row"><span class="kit-label">RMIT GITHUB</span><span class="kit-value"> </span></div>
-    <div class="divider"></div>
-    <p class="kit-label">Commit History</p>
-    <div class="commit-gallery">
-
-        <div class="gallery-item" data-full="assets/gallery_1.png">
-            <img src="assets/gallery_1.png" alt="Object pooling commit, May 2026">
-            <div class="gallery-cap">
-                <span class="g-title">Object Pooling</span>
-                <span class="g-desc">replace SpawnActor with pool</span>
-                <span class="g-hash">bd20f4e</span>
-            </div>
-        </div>
-
-        <div class="gallery-item" data-full="assets/gallery_2.png">
-            <img src="assets/gallery_2.png" alt="Object pooling diff, May 2026">
-            <div class="gallery-cap">
-                <span class="g-title">Pooling Diff</span>
-                <span class="g-desc">the before/after change</span>
-                <span class="g-hash">bd20f4e</span>
-            </div>
-        </div>
-
-        <div class="gallery-item" data-full="assets/gallery_3.png">
-            <img src="assets/gallery_3.png" alt="Nearest enemy commit, May 2026">
-            <div class="gallery-cap">
-                <span class="g-title">Nearest Enemy</span>
-                <span class="g-desc">closest-target search</span>
-                <span class="g-hash">c6ce204</span>
-            </div>
-        </div>
-
-        <div class="gallery-item" data-full="assets/gallery_4.png">
-            <img src="assets/gallery_4.png" alt="Nearest enemy diff">
-            <div class="gallery-cap">
-                <span class="g-title">Nearest Enemy Diff</span>
-                <span class="g-desc">overlap + distance scan</span>
-                <span class="g-hash">c6ce204</span>
-            </div>
-        </div>
-
+<body class="page-home">
+<header class="site-header wrap">
+  <a class="logo" href="index.html">IROH NGUYEN</a>
+  <nav class="site-nav" aria-label="Main"><a href="portfolio/index.html">Portfolio</a><a href="notes/index.html">Notes</a><a href="codex/index.html">Codex</a><a href="about/index.html">About</a></nav>
+</header>
+<main>
+  <!-- HERO: video banner. Never autoplays; the poster image shows until the visitor presses play.
+       Put the reel at assets/showreel.mp4. Until it exists, the button says "Showreel coming soon". -->
+  <section class="hero" id="top" data-reel>
+    <video class="hero-media" preload="metadata" playsinline poster="assets/gameplay_hero.png">
+      <source src="assets/showreel.mp4" type="video/mp4">
+    </video>
+    <!-- The veil: a dark screen over the reel with a bracketed title, a play button and the chapter list.
+         It fades away while the reel plays. -->
+    <div class="hero-veil">
+      <span class="veil-title">[ SHOWREEL 2026 ]</span>
+      <button type="button" class="veil-play" data-play aria-label="Play showreel with sound"><span aria-hidden="true">▶</span></button>
+      <!-- TODO: match these to the final cut. data-t is the start time in seconds. -->
+      <ol class="chapters" aria-label="Showreel chapters">
+        <li><button type="button" class="reel-mark" data-t="4"><span class="ch-time">0:04</span><span class="ch-game">Flapjack</span><span class="ch-what">Reactive cannon audio</span></button></li>
+        <li><button type="button" class="reel-mark" data-t="15"><span class="ch-time">0:15</span><span class="ch-game">Alchemist TD</span><span class="ch-what">Dialogue fired by trigger</span></button></li>
+        <li><button type="button" class="reel-mark" data-t="28"><span class="ch-time">0:28</span><span class="ch-game">Alchemist TD</span><span class="ch-what">Pooled enemy waves</span></button></li>
+      </ol>
     </div>
-    <div class="left-foot">
-        <p class="tiny">GAME DEV DIARY</p>
+  </section>
+
+  <!-- INTRO: who I am, in one tight band between the reel and the work -->
+  <section class="intro wrap">
+    <div class="intro-text">
+      <span class="chip">GAME PROGRAMMER · MELBOURNE</span>
+      <h1>Iroh</h1>
+      <p>I build gameplay, dialogue and audio systems in C++ and Unreal Engine 5. My strength is creating the working conditions for a team to utilise their talents.</p>
     </div>
-</aside>
+    <a class="btn btn-primary" href="portfolio/index.html">See my portfolio</a>
+  </section>
 
-<!-- ═══════════ MIDDLE : CONTENT ═══════════ -->
-<main class="blog-col">
-    <div class="blog-intro">
-        <p class="eyebrow">Notes &amp; Reflections</p>
-        <h1>How I think through the systems I build.</h1>
-        <p>Reflections on what I build, the problem, the process in thinking about the problem, the fix, and what I took from it.</p>
+  <section class="section wrap" id="work" style="padding-top:40px">
+    <div class="section-head">
+      <h2>Featured work</h2>
+      <a class="more" href="portfolio/index.html">Portfolio →</a>
     </div>
-
-    <!-- ───── POST 1 : POOLING ───── -->
-    <article id="post-pooling">
-        <p class="post-eyebrow">
-            <span class="note-id">NOTE-03 · DEV SESSION 17</span>
-            <span class="eyebrow-meta">MAY 9 2026 · Alchemist TD · Memory &amp; lifetime · Solo · UE5 · C++</span>
-        </p>
-        <h2>Object pooling for enemies</h2>
-        <p class="dek">Reusing enemies instead of creating and destroying them.</p>
-
-        <div class="shot"><img src="assets/gameplay_hero.png" alt="Alchemist TD gameplay: Spamming potions into waves of enemies will no longer result in an ERROR_ACCESS_VIOLATION"></div>
-        <p class="shot-cap"><em>Alchemist TD gameplay. I spam potions into waves of enemies. This no longer causes an ERROR_ACCESS VIOLATION, as enemy spawning is handled by object pooling </em></p>
-
-        <div class="exec">
-            <div class="exec-head"><h2>OBJECT POOLING</h2></div>
-            <div class="exec-row principle"><div class="k">Principle</div><div class="v">Create every enemy once when the level loads, then reuse them.</div></div>
-            <div class="exec-row problem"><div class="k">Problem</div><div class="v">Killing enemies really fast caused an access violation.</div></div>
-            <div class="exec-row fix"><div class="k">Fix</div><div class="v">Pre-spawn a pool of monsters that are hidden and switched off (disable tick, mesh, and collision components). Activate one when needed; return it to the pool on death instead of destroying it, which let me remove the looping timer entirely.</div></div>
-            <div class="exec-row lesson"><div class="k">Key lesson</div><div class="v">Understand the lifetime of your functions, timers, and objects. A timer that acts on an object that's already been destroyed will crash.</div></div>
+    <div class="grid-3">
+      <a class="card" href="portfolio/index.html#alchemist">
+        <img class="card-media" src="assets/gameplay_hero.png" alt="Alchemist TD gameplay">
+        <div class="card-body">
+          <span class="card-title">Alchemist TD (2026)</span>
+          <span class="tags">SOLO · UE5 · C++</span>
+          <p>Data-driven dialogue, trigger-fired cutscenes, pooled enemies.</p>
         </div>
-
-        <h3><span class="n">01 ·</span> CRASH: EXCEPTION_ACCESS_VIOLATION</h3>
-        <p>Under stress  spamming potions into a dense crowd so enemies died rapidly  the game crashed:</p>
-        <div class="crashlog">EXCEPTION_ACCESS_VIOLATION writing address <span class="addr">0x0000000000000550</span><br>&nbsp;&nbsp;in AWaveManager::SpawnBatch lambda  while clearing the batch list</div>
-        <p>The cause was a dangling pointer. The spawn timer's lambda held raw pointers to the enemies (and to the spawner itself). When an enemy was destroyed before the timer next fired, that pointer was left pointing at memory that had already been freed  so the timer reached for something that no longer existed. The tiny near-zero address is the fingerprint of exactly that.</p>
-        <p>My first fix was trying to switch the enemy references to <code>TWeakObjectPtr</code> (which invalidates automatically when the object is destroyed) and added <code>IsValid</code> guards. That stopped the crash  but it was still <em>guarding against</em> a dangerous situation rather than removing it.</p>
-
-        <figure>
-            <svg viewBox="0 0 860 235" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Three-step reasoning: diagnose the dangling pointer, guard it with smart pointers, then re-architect with pooling so the bug cannot occur.">
-                <defs><marker id="a1" markerWidth="10" markerHeight="10" refX="7" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#2f6f4f"/></marker></defs>
-                <rect x="12" y="44" width="256" height="150" rx="10" fill="#ffffff" stroke="#dcdad2"/>
-                <circle cx="40" cy="74" r="14" fill="#eef3ef" stroke="#2f6f4f"/><text x="40" y="79" text-anchor="middle" font-family="DM Mono" font-size="12" fill="#2f6f4f">1</text>
-                <text x="64" y="72" font-family="Be Vietnam Pro" font-size="13" font-weight="600" fill="#1f2530">Understand the error</text>
-                <text font-family="Be Vietnam Pro" font-size="11.5" fill="#454b56"><tspan x="28" y="102">The enemy was a pointer.</tspan><tspan x="28" dy="17">I destroyed it — so the</tspan><tspan x="28" dy="17">pointer now points at</tspan><tspan x="28" dy="17">nothing. That's the</tspan><tspan x="28" dy="17">access violation.</tspan></text>
-                <rect x="302" y="44" width="256" height="150" rx="10" fill="#ffffff" stroke="#dcdad2"/>
-                <circle cx="330" cy="74" r="14" fill="#eef3ef" stroke="#2f6f4f"/><text x="330" y="79" text-anchor="middle" font-family="DM Mono" font-size="12" fill="#2f6f4f">2</text>
-                <text x="354" y="72" font-family="Be Vietnam Pro" font-size="13" font-weight="600" fill="#1f2530">Patch it safely</text>
-                <text font-family="Be Vietnam Pro" font-size="11.5" fill="#454b56"><tspan x="318" y="102">Found UE5's smart-</tspan><tspan x="318" dy="17">pointer types. Used</tspan><tspan x="318" dy="17">TWeakObjectPtr + IsValid</tspan><tspan x="318" dy="17">guards so a dead pointer</tspan><tspan x="318" dy="17">can't be used.</tspan></text>
-                <rect x="592" y="44" width="256" height="150" rx="10" fill="#eef3ef" stroke="#2f6f4f"/>
-                <circle cx="620" cy="74" r="14" fill="#ffffff" stroke="#2f6f4f"/><text x="620" y="79" text-anchor="middle" font-family="DM Mono" font-size="12" fill="#2f6f4f">3</text>
-                <text x="644" y="72" font-family="Be Vietnam Pro" font-size="13" font-weight="600" fill="#161821">Re-architect</text>
-                <text font-family="Be Vietnam Pro" font-size="11.5" fill="#2c333f"><tspan x="608" y="102">Switched to object</tspan><tspan x="608" dy="17">pooling. No runtime</tspan><tspan x="608" dy="17">destroy, no looping</tspan><tspan x="608" dy="17">timer — so the crash</tspan><tspan x="608" dy="17">can't happen at all.</tspan></text>
-                <text x="140" y="30" text-anchor="middle" font-family="DM Mono" font-size="10" letter-spacing="1" fill="#2f6f4f">DIAGNOSE</text>
-                <text x="430" y="30" text-anchor="middle" font-family="DM Mono" font-size="10" letter-spacing="1" fill="#2f6f4f">GUARD</text>
-                <text x="720" y="30" text-anchor="middle" font-family="DM Mono" font-size="10" letter-spacing="1" fill="#2f6f4f">ELIMINATE</text>
-                <path d="M272,119 L299,119" stroke="#2f6f4f" stroke-width="1.5" marker-end="url(#a1)"/>
-                <path d="M562,119 L589,119" stroke="#2f6f4f" stroke-width="1.5" marker-end="url(#a1)"/>
-            </svg>
-            <figcaption>How I got there: diagnose the pointer, guard it, then remove the situation entirely.</figcaption>
-        </figure>
-
-        <h3><span class="n">02 ·</span> REDESIGNING SPAWN ARCHITECTURE</h3>
-        <p></p>
-        <div class="ba">
-            <div>
-                <h4><span class="tag tag-b">before</span> allocate every spawn</h4>
-                <span class="filepath">WaveManager.cpp</span>
-                <pre><code><span class="cmt">// fresh actor created every spawn,</span>
-<span class="cmt">// destroyed on death.</span>
-<span class="key">void</span> AWaveManager::SpawnSingleEnemy(...)
-{
-    AEnemyBase* Enemy =
-      GetWorld()-&gt;SpawnActor&lt;<span class="typ">AEnemyBase</span>&gt;(
-        EnemyClass, Loc, Rot, Params);
-      <span class="cmt">// ^ heap alloc, every spawn</span>
-}
-<span class="cmt">// On death:</span>
-Destroy();  <span class="cmt">// timer may still</span>
-            <span class="cmt">// reach for it</span></code></pre>
-            </div>
-            <div>
-                <h4><span class="tag tag-a">after</span> reuse from a pool</h4>
-                <span class="filepath">WaveManager.cpp</span>
-                <pre><code><span class="cmt">// existing actor checked out of a</span>
-<span class="cmt">// pre-filled pool. no alloc.</span>
-<span class="key">void</span> AWaveManager::SpawnSingleEnemy(...)
-{
-    AEnemyBase* Enemy =
-      EnemyPool-&gt;GetFromPool(EnemyType);
-    <span class="key">if</span> (!Enemy) { <span class="cmt">/* exhausted */</span> }
-    Enemy-&gt;SetActorLocationAndRotation(...);
-}
-<span class="cmt">// On death:</span>
-EnemyPool-&gt;ReturnToPool(<span class="key">this</span>);
-       <span class="cmt">// reset, no destroy</span></code></pre>
-            </div>
+      </a>
+      <a class="card" href="portfolio/index.html#artdeath">
+        <div class="card-media placeholder">[ Art &amp; Death key art ]</div>
+        <div class="card-body">
+          <span class="card-title">Art &amp; Death (2025)</span>
+          <span class="tags">STUDIO EVYANIA · UE5 · VR</span>
+          <p>VR horror pitched to PQube. Spatial audio with per-room reverb.</p>
         </div>
-        <p class="commit">commit bd20f4e · &ldquo;implement object pooling — replace SpawnActor with pre-spawned enemy pool&rdquo; · 9 May 2026</p>
-
-        <p style="margin-top:22px;">The pool itself is a map from each enemy type to an array of reusable enemy instances. The level's enemy types and quantity per enemy to pre-spawn are set in the editor by the designer via the UPROPERTY macro, so adding a new enemy type or level is a simple editor change, not a code change.</p>
-
-        <!-- header declaration: full width, on its own -->
-        <span class="filepath">EnemyPoolComponent.h - DECLARATION </span>
-        <pre><code><span class="cmt">/*  UEnemyPoolComponent
- *   Owns all pre-spawned enemy actors for the level.
- *   One array per enemy type; all spawned once at load, then reused. */</span>
-<span class="key">private</span>:
-    <span class="cmt">// map:  enemy type  →  reusable instances</span>
-    <span class="typ">TMap</span>&lt;<span class="typ">EEnemyType</span>, <span class="typ">TArray</span>&lt;<span class="typ">TObjectPtr</span>&lt;<span class="typ">AEnemyBase</span>&gt;&gt;&gt; Pool;
-<span class="key">public</span>:
-    <span class="key">void</span> InitializePool();                  <span class="cmt">// pre-spawn everything at load</span>
-    <span class="typ">AEnemyBase</span>* GetFromPool(<span class="typ">EEnemyType</span> Type); <span class="cmt">// check out a free instance</span>
-    <span class="key">void</span> ReturnToPool(<span class="typ">AEnemyBase</span>* Enemy);   <span class="cmt">// reset + hand back on death</span></code></pre>
-
-        <!-- implementations: side by side -->
-    
-                <span class="filepath">EnemyPoolComponent.cpp — IMPLEMENTATION - GetFromPool</span>
-                <pre><code><span class="typ">AEnemyBase</span>* UEnemyPoolComponent::GetFromPool(<span class="typ">EEnemyType</span> EnemyType)
-{
-    <span class="typ">TArray</span>&lt;<span class="typ">TObjectPtr</span>&lt;<span class="typ">AEnemyBase</span>&gt;&gt;* TypePool = Pool.Find(EnemyType);
-    <span class="key">if</span> (!TypePool)
-    {
-        <span class="cmt">// no pool for this type — was InitializePool called?</span>
-        <span class="key">return</span> <span class="key">nullptr</span>;
-    }
-
-    <span class="cmt">// walk this type's array by reference; return first free instance</span>
-    <span class="key">for</span> (<span class="typ">TObjectPtr</span>&lt;<span class="typ">AEnemyBase</span>&gt;&amp; EnemyPtr : *TypePool)
-    {
-        <span class="key">if</span> (!IsValid(EnemyPtr)) <span class="key">continue</span>;   <span class="cmt">// skip invalid</span>
-        <span class="key">if</span> (EnemyPtr-&gt;bIsInUse)  <span class="key">continue</span>;   <span class="cmt">// skip ones already alive</span>
-        Activate(EnemyPtr);
-        <span class="key">return</span> EnemyPtr;                     <span class="cmt">// hand back the real reference</span>
-    }
-
-    <span class="cmt">// nothing free — pool sized too small for this wave</span>
-    <span class="key">return</span> <span class="key">nullptr</span>;
-}</code></pre>
-       
-                <span class="filepath">EnemyPoolComponent.cpp — IMPLEMENTATION -  ReturnToPool</span>
-                <pre><code><span class="key">void</span> UEnemyPoolComponent::ReturnToPool(<span class="typ">AEnemyBase</span>* Enemy)
-{
-    <span class="key">if</span> (!IsValid(Enemy)) <span class="key">return</span>;
-    Enemy-&gt;GetWorldTimerManager().ClearTimer(Enemy-&gt;ChaseTimer);
-
-    Enemy-&gt;OnReturnToPool();
-    Enemy-&gt;CurrentWaypointIndex = 0;
-    Enemy-&gt;bIsDead        = <span class="key">false</span>;
-    Enemy-&gt;bMovementHeld  = <span class="key">true</span>;
-    Enemy-&gt;bIsInUse       = <span class="key">false</span>;
-    Enemy-&gt;LateralOffset  = 0.f;
-
-    <span class="key">if</span> (IsValid(Enemy-&gt;PhaseManagerRef))
-    {
-        Enemy-&gt;PhaseManagerRef-&gt;OnPhaseChanged.RemoveDynamic(Enemy, &amp;<span class="typ">AEnemyBase</span>::HandlePhaseChanged);
-    }
-    Enemy-&gt;PhaseManagerRef = <span class="key">nullptr</span>;
-    Enemy-&gt;WaveManagerRef  = <span class="key">nullptr</span>;
-
-    <span class="cmt">// Stop AI movement</span>
-    <span class="key">if</span> (<span class="typ">AAIController</span>* AI = Cast&lt;<span class="typ">AAIController</span>&gt;(Enemy-&gt;GetController()))
-    {
-        AI-&gt;StopMovement();
-    }
-
-    <span class="cmt">// Clear status effects</span>
-    <span class="key">if</span> (IsValid(Enemy-&gt;StatusEffectComponent))
-    {
-        Enemy-&gt;StatusEffectComponent-&gt;OnStatusApplied.RemoveDynamic(Enemy, &amp;<span class="typ">AEnemyBase</span>::OnStatusApplied);
-        Enemy-&gt;StatusEffectComponent-&gt;OnStatusExpired.RemoveDynamic(Enemy, &amp;<span class="typ">AEnemyBase</span>::OnStatusExpired);
-    }
-
-    Deactivate(Enemy);
-}</code></pre>
-            </div>
+      </a>
+      <a class="card" href="portfolio/flapjack.html">
+        <div class="card-media veiled"><img src="assets/flapjack.png" alt="Flapjack: the Kraken final boss looming over the player ship"><span class="veil-label">[ FLAPJACK ]</span></div>
+        <div class="card-body">
+          <span class="card-title">Flapjack (2026)</span>
+          <span class="tags">RMIT TEAM · GODOT</span>
+          <p>Roguelike pirate shooter. A 32-voice audio pool across four buses, plus data-driven dialogue.</p>
         </div>
-        <h3><span class="n">03 ·</span> REFLECTION </h3>
-        <div class="note">
-            <p class="lbl">Limitations</p>
-            <p>Whilst writing this post, I was brainstorming the edge cases and limits of this architecture and one limit I thought of was that my GetFromPool() function searches a usable enemy instance via a walk.
-            At this stage, I have only 3 enemy types and a hundred of them each per type. However, I need to consider later stages of the game when there are tens of enemy types with thousands of enemies. If a large mixed group of enemies die in the same tick, then in that single frame the game would be scanning from the start of each type's array looking for a free slot.
-            The more enemies and bigger the pools the longer that takes. A solution could potentially be keeping a separate list of enemies that are currently free. This means that accessing that list, the first index would always give me an enemy. 
+      </a>
+    </div>
+  </section>
+
+  <section class="section wrap" id="notes">
+    <div class="section-head">
+      <h2>Latest notes</h2>
+      <a class="more" href="codex/index.html">Open the Codex →</a>
+    </div>
+    <div class="grid-3">
+      <a class="card" href="notes/index.html#post-pooling">
+        <div class="card-body">
+          <span class="kicker">NOTE-03 · MAY 2026</span>
+          <span class="card-title">Object pooling for enemies</span>
+          <p>Diagnose the pointer, guard it, then remove the crash entirely.</p>
+          <span class="tags">#ObjectPooling #Memory</span>
         </div>
-    </article>
-
-    <!-- ───── POST 2 : NEAREST ENEMY ───── -->
-    <article id="post-nearest">
-        <p class="post-eyebrow">
-            <span class="note-id">NOTE-02 · DEV SESSION 29</span>
-            <span class="eyebrow-meta">MAY 18 2026 · Alchemist TD · Search · Vectors · Solo · UE5 · C++</span>
-        </p>
-        <h2>Finding the nearest enemy</h2>
-        <p class="dek">Search efficiently.</p>
-
-        <div class="shot"><img src="assets/2026_07_08_nearest_enemy.png" alt="Alchemist TD: Radial Enemy Query"></div>
-        <p class="shot-cap"><em>Alchemist TD: When the objective (teddy in img) is dropped on the ground. The closest enemy rushes to capture it.</em></p>
-
-        <div class="exec">
-            <div class="exec-head"><h2>NEAREST ENEMY</h2></div>
-            <div class="exec-row principle"><div class="k">Principle</div><div class="v">Filter down to a small set first, then perform calculations.</div></div>
-            <div class="exec-row problem"><div class="k">Problem</div><div class="v">When the objective is dropped, one enemy needs to retrieve it. I needed the closest enemy to a point, without measuring every enemy in the level.</div></div>
-            <div class="exec-row fix"><div class="k">Fix</div><div class="v">Spawn a collision sphere at the point and get back only the enemies overlapping it. Then iterate that smaller set, building a vector from each enemy to the centre to measure distance, and keep the closest.</div></div>
-            <div class="exec-row lesson"><div class="k">Key lesson</div><div class="v"> Cut down on how much you search. A cheap filter (the radius query) means the costly step (measuring distance) only runs on a handful of candidates, not the whole level. I avoided GetAllActorsOfClass, which would iterate every actor in the level. The overlap sphere gives me only the nearby enemies, so I'm never scanning the whole world.</div></div>
+      </a>
+      <a class="card" href="notes/index.html#post-nearest">
+        <div class="card-body">
+          <span class="kicker">NOTE-02 · MAY 2026</span>
+          <span class="card-title">Finding the nearest enemy</span>
+          <p>An overlap and distance scan for closest-target search.</p>
+          <span class="tags">#Search #Vectors</span>
         </div>
-        <br>
-        <span class="filepath">PhaseManager.cpp - IMPLEMENTATION - FindClosestEnemy()</span>
-        <pre><code><span class="cmt">// Returns the closest living enemy within Radius of Location.</span>
-<span class="typ">AEnemyBase</span>* APhaseManager::FindClosestEnemy(<span class="typ">FVector</span> Location, <span class="key">float</span> Radius,
-                                          <span class="typ">AActor</span>* ActorToIgnore) <span class="key">const</span>
-{
-    <span class="cmt">// 1 — ask the physics system for only the enemies inside the sphere.</span>
-    <span class="typ">TArray</span>&lt;<span class="typ">FOverlapResult</span>&gt; OverlapResults;
-    <span class="typ">FCollisionQueryParams</span> QueryParams;
-    <span class="key">if</span> (ActorToIgnore) QueryParams.AddIgnoredActor(ActorToIgnore);
-
-    GetWorld()-&gt;OverlapMultiByChannel(
-        OverlapResults, Location, <span class="typ">FQuat</span>::Identity,
-        ECC_GameTraceChannel2,                 <span class="cmt">// the "Enemy" channel only</span>
-        <span class="typ">FCollisionShape</span>::MakeSphere(Radius), QueryParams);
-
-    <span class="cmt">// 2 — scan the survivors, keep the closest one.</span>
-    <span class="cmt">//     FLT_MAX = "nothing found yet", so the first real enemy always wins.</span>
-    <span class="typ">AEnemyBase</span>* ClosestEnemy = <span class="key">nullptr</span>;
-    <span class="key">float</span> ClosestDistance = <span class="typ">FLT_MAX</span>;
-
-    <span class="key">for</span> (<span class="key">const</span> <span class="typ">FOverlapResult</span>&amp; Result : OverlapResults)
-    {
-        <span class="typ">AEnemyBase</span>* Enemy = Cast&lt;<span class="typ">AEnemyBase</span>&gt;(Result.GetActor());
-        <span class="key">if</span> (!IsValid(Enemy)) <span class="key">continue</span>;   <span class="cmt">// skip non-enemies / invalid</span>
-        <span class="key">if</span> (Enemy-&gt;bIsDead)   <span class="key">continue</span>;
-
-        <span class="key">float</span> Distance = <span class="typ">FVector</span>::Dist(Enemy-&gt;GetActorLocation(), Location);
-        <span class="key">if</span> (Distance &lt; ClosestDistance)
-        {
-            ClosestDistance = Distance;
-            ClosestEnemy = Enemy;
-        }
-    }
-    <span class="key">return</span> ClosestEnemy;
-}</code></pre>
-
-        <div class="note">
-            <p class="lbl">REFLECTION </p>
-            <p> Overlap and Hit are different in Unreal, and I had to be deliberate about which I used. A <em>Hit</em> fires when two things physically block each other and stop like a projectile striking a wall. An <em>Overlap</em> fires when they pass through each other and the engine just reports the contact like walking through a trigger zone. Here I only want to <em>detect</em> which enemies are inside the sphere, not stop or block them, so an overlap query is the right choice, a hit would imply the sphere is a solid barrier, which it isn't.</p>
+      </a>
+      <a class="card" href="notes/index.html#post-thankscarl">
+        <div class="card-body">
+          <span class="kicker">NOTE-01 · MAY 2026</span>
+          <span class="card-title">Learning structs on Thanks Carl</span>
+          <p>Data-driven waves in a team VR project.</p>
+          <span class="tags">#Structs #Unity</span>
         </div>
-    </article>
-
-    <!-- ───── POST 3 : THANKS CARL ───── -->
-    <article id="post-thankscarl">
-        <p class="post-eyebrow">
-            <span class="note-id">NOTE-01 · RMIT PROJECT</span>
-            <span class="eyebrow-meta">MAY 9 2026 · Thanks Carl · Structs · GROUP · UNITY · C#</span>
-        </p>
-        <h2>ThanksCarl Development Highlights</h2>
-        <p class="dek">Virtual Reality - Tower Defense Crafting Potions</p>
-
-              
-        <div class="frame">
-            <p><strong>This was a group project</strong>  an RMIT team game built with the lead developer M.W. with three other team members. My contributions were the <strong>enemy spawning</strong>, the <strong>enemy movement</strong>, and the <strong>waves and levels system</strong></p>
-        </div>
-        <br>
-        <a class="btn-link" href="https://github.com/rmit-computing-technologies/potion-maker-potion-makers/commits?author=TuanTriet" target="_blank" rel="noopener">
-            <svg viewBox="0 0 24 24" fill="currentColor" width="14" height="14"><path d="M12 2C6.5 2 2 6.6 2 12.3c0 4.5 2.9 8.3 6.8 9.7.5.1.7-.2.7-.5v-1.7c-2.8.6-3.4-1.4-3.4-1.4-.5-1.2-1.1-1.5-1.1-1.5-.9-.6.1-.6.1-.6 1 .1 1.5 1 1.5 1 .9 1.5 2.3 1.1 2.9.8.1-.7.3-1.1.6-1.4-2.2-.3-4.6-1.1-4.6-5 0-1.1.4-2 1-2.7-.1-.3-.4-1.3.1-2.7 0 0 .8-.3 2.7 1 .8-.2 1.6-.3 2.5-.3s1.7.1 2.5.3c1.9-1.3 2.7-1 2.7-1 .5 1.4.2 2.4.1 2.7.6.7 1 1.6 1 2.7 0 3.9-2.3 4.7-4.6 5 .4.3.7.9.7 1.9v2.8c0 .3.2.6.7.5 3.9-1.4 6.8-5.2 6.8-9.7C22 6.6 17.5 2 12 2z"/></svg>
-            View my commits on the Thanks Carl repo →
-        </a>
-        <br>
-        
-        <h3><span class="n">01 ·</span> DROP TABLE (LOOT CHANCE) LOGIC ABSTRACTION FOR SPAWNING MONSTERS</h3>
-        <p>M.W had built a random drop table for crafting ingredients. I realised the same idea worked for enemies: if it can randomly pick from a table of ingredients and produce one, I could swap the objects for monsters and get a <strong>randomised wave composition</strong>  so every playthrough gives a different mix of enemies, and the player can't lean on one repeated strategy.</p>
-        <p>I repurposed it into <code>RunMinionDropTable()</code>, spawning monsters into a spawn area at the end of the combat zone, then pushing each one toward a target at the cauldron.</p>
-        <span class="filepath">Spawner.cs — the weighted picker (my contribution)</span>
-        <pre><code><span class="cmt">// NEW PICKER WITH WEIGHTING</span>
-<span class="cmt">// swap ingredient logic for a monster drop table, so each</span>
-<span class="cmt">// wave's composition is randomised per playthrough</span>
-<span class="key">var</span> monsterPrefab = RunMinionDropTable(wave.minionPrefabsTable);
-
-<span class="typ">GameObject</span> m = Instantiate(monsterPrefab, spawnPosition, <span class="typ">Quaternion</span>.identity);
-
-<span class="cmt">// hand the spawned monster its movement target (the cauldron)</span>
-<span class="typ">EnemyMovement</span> em = m.GetComponent&lt;<span class="typ">EnemyMovement</span>&gt;();
-em.endzoneTrigger = endZoneVolume;
-em.endLookTarget  = endLookTarget;</code></pre>
-
-        <h3><span class="n">02 ·</span> STRUCTS WITHIN STRUCTS </h3>
-        <p>The waves-and-levels system was the part I'm proudest of from this project, because I was able to create an inspector tool so my teammates could easily edit waves and test the game. A struct lets you define the <em>shape</em> of a wave once, then fill in many of them from the Unity inspector without touching code. A level became an array of waves; each wave carried its own count, batch size, timing, and enemy table.</p>
-        <span class="filepath">LevelManager.cs — the wave/level structs (my contribution)</span>
-        <pre><code>[<span class="typ">Serializable</span>] <span class="cmt">// Wave config — editable in the inspector</span>
-<span class="key">public struct</span> <span class="typ">WaveConfig</span>
-{
-    <span class="key">public string</span> name;
-    <span class="key">public</span> <span class="typ">Minions</span>[] minionPrefabsTable; <span class="cmt">// which monsters can appear</span>
-    <span class="key">public int</span> totalMinions;              <span class="cmt">// how many in this wave</span>
-    <span class="key">public int</span> batchSize;                 <span class="cmt">// how many spawn at once</span>
-    <span class="key">public float</span> batchInterval;           <span class="cmt">// time between batches</span>
-    <span class="key">public float</span> inBatchSpacing;          <span class="cmt">// spacing within a batch</span>
-}
-
-[<span class="typ">Serializable</span>] <span class="cmt">// Level config — an array of waves + a boss</span>
-<span class="key">public struct</span> <span class="typ">LevelConfig</span>
-{
-    <span class="key">public string</span> level;
-    <span class="key">public</span> <span class="typ">GameObject</span> bossPrefab;
-    <span class="key">public int</span> wavesToBoss;
-    <span class="key">public</span> <span class="typ">WaveConfig</span>[] wave; <span class="cmt">// many waves per level</span>
-}</code></pre>
-
-        <div class="shot"><img src="assets/2026_07_08_level_manager.png" alt="Alchemist TD: LevelManager in Inspector"></div>
-        <p class="shot-cap"><em>In the inspector, designers can simply edit waves and levels. As a level is an array of structures including waves, bosses and level environments. A wave is a structure made up of enemies, time and a table of monsters and spawn chances. </em></p>
-    </article>
-
+      </a>
+    </div>
+  </section>
+  <!-- TOOLKIT STRIP: the IMDb-style "details" box, now the last thing before the footer. -->
+  <section class="section wrap" id="toolkit" style="padding-top:56px">
+    <div class="section-head"><h2>Toolkit</h2><a class="more" href="mailto:tuantrietn@gmail.com">Resume on request →</a></div>
+    <div class="details" aria-label="Toolkit" style="margin-top:0">
+      <div><span class="kicker">Game engines</span><span class="v">Unreal Engine 5 · Godot · Unity</span></div>
+      <div><span class="kicker">Languages</span><span class="v">C++ · C# · Python · GDScript · Lua</span></div>
+      <div><span class="kicker">Audio</span><span class="v">MetaSounds · Quartz · Submixes · voice pooling</span></div>
+      <div><span class="kicker">Version control</span><span class="v">Git · GitHub</span></div>
+      <div><span class="kicker">Workflow</span><span class="v">Blueprints · Jira · Agile</span></div>
+    </div>
+  </section>
 </main>
 
-<!-- ═══════════ RIGHT RAIL : POST LIST ═══════════ -->
-<aside class="right-col">
-    <p class="kicker">// Posts</p>
-    <a class="post-link" href="#post-pooling" data-target="post-pooling">
-        <span class="pl-title"><span class="pl-num">NOTE-03</span> Object pooling for enemies</span>
-        <span class="pl-meta">Alchemist TD · Solo</span>
-    </a>
-    <a class="post-link" href="#post-nearest" data-target="post-nearest">
-        <span class="pl-title"><span class="pl-num">NOTE-02</span> Finding the nearest enemy</span>
-        <span class="pl-meta">Alchemist TD · Solo</span>
-    </a>
-    <a class="post-link" href="#post-thankscarl" data-target="post-thankscarl">
-        <span class="pl-title"><span class="pl-num">NOTE-01</span> Learning structs on Thanks Carl</span>
-        <span class="pl-meta">Thanks Carl · Group</span>
-    </a>
-</aside>
-
-
-<div class="lightbox" id="lightbox" aria-hidden="true">
-    <span class="lightbox-close" id="lightboxClose" aria-label="Close">&times;</span>
-    <div class="lightbox-inner">
-        <img src="" alt="" id="lightboxImg">
-        <p class="lightbox-caption" id="lightboxCaption"></p>
-    </div>
-</div>
 <script>
-    // active-post highlighting in the right rail as you scroll
-    const links = document.querySelectorAll('.post-link');
-    const map = {};
-    links.forEach(l => map[l.dataset.target] = l);
-    const obs = new IntersectionObserver((entries) => {
-        entries.forEach(e => {
-            if (e.isIntersecting) {
-                links.forEach(l => l.classList.remove('active'));
-                if (map[e.target.id]) map[e.target.id].classList.add('active');
-            }
-        });
-    }, { rootMargin: '-30% 0px -60% 0px' });
-    document.querySelectorAll('article').forEach(a => obs.observe(a));
+  // Showreel: plays only when the visitor asks. While playing, the text steps aside and
+  // native controls appear; pausing or reaching the end brings the banner back.
+  (function () {
+    const hero = document.querySelector('[data-reel]');
+    if (!hero) return;
+    const video = hero.querySelector('video');
+    const play = hero.querySelector('[data-play]');
+    let available = true;
+
+    function unavailable() {
+      available = false;
+      hero.classList.add('reel-missing');
+      play.disabled = true;
+      hero.querySelectorAll('.reel-mark').forEach(m => m.disabled = true);
+    }
+    video.querySelector('source').addEventListener('error', unavailable);
+    video.addEventListener('error', unavailable);
+    // the error may already have fired before this script ran
+    if (video.networkState === HTMLMediaElement.NETWORK_NO_SOURCE) unavailable();
+
+    function start(t) {
+      if (!available) return;
+      if (typeof t === 'number') {
+        // seeking needs the video's metadata; wait for it if it hasn't arrived yet
+        if (video.readyState >= 1) video.currentTime = t;
+        else video.addEventListener('loadedmetadata', () => { video.currentTime = t; }, { once: true });
+      }
+      video.muted = false;              // user pressed play, so sound is allowed and it's an audio portfolio
+      video.play().catch(() => {});
+    }
+    play.addEventListener('click', () => start());
+    hero.querySelectorAll('.reel-mark').forEach(m => m.addEventListener('click', () => start(Number(m.dataset.t))));
+
+    video.addEventListener('play', () => { hero.classList.add('playing'); video.controls = true; });
+    const reset = () => { hero.classList.remove('playing'); video.controls = false; };
+    video.addEventListener('pause', reset);
+    video.addEventListener('ended', reset);
+  })();
 </script>
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        const lb = document.getElementById('lightbox');
-        const lbImg = document.getElementById('lightboxImg');
-        const lbClose = document.getElementById('lightboxClose');
 
-        if (!lb || !lbImg) { console.warn('Lightbox elements missing'); return; }
-
-        document.querySelectorAll('.gallery-item').forEach(function (item) {
-            item.addEventListener('click', function () {
-                const img = item.querySelector('img');
-                lbImg.src = item.dataset.full;
-                lbImg.alt = img.alt;                                    // keep alt on the image
-                document.getElementById('lightboxCaption').textContent = img.alt;  // show it as caption
-                lb.classList.add('open');
-                lb.setAttribute('aria-hidden', 'false');
-            });
-        });
-
-        function closeLightbox(){
-            lb.classList.remove('open');
-            lb.setAttribute('aria-hidden', 'true');
-        }
-        lb.addEventListener('click', closeLightbox);
-        if (lbClose) lbClose.addEventListener('click', closeLightbox);
-        document.addEventListener('keydown', function (e) {
-            if (e.key === 'Escape') closeLightbox();
-        });
-    });
-</script>
+<footer class="site-footer">
+  <div class="wrap">
+    <a href="mailto:tuantrietn@gmail.com">tuantrietn@gmail.com</a>
+    <a href="https://github.com/irohgit" target="_blank" rel="noopener">github.com/irohgit</a>
+    <a href="https://www.linkedin.com/in/tuan-triet-nguyen" target="_blank" rel="noopener">linkedin.com/in/tuan-triet-nguyen</a>
+  </div>
+</footer>
 </body>
 </html>

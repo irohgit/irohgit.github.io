@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en" data-root="../">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>About · Iroh Nguyen</title>
+<meta name="description" content="Iroh Nguyen, game programmer in Melbourne. Gameplay, dialogue and audio systems in C++ and Unreal Engine 5.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;800&family=IBM+Plex+Sans:ital,wght@0,400;0,500;1,400&family=Space+Mono:wght@400;700&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+</head>
+<body class="">
+<header class="site-header wrap">
+  <a class="logo" href="../index.html">IROH NGUYEN</a>
+  <nav class="site-nav" aria-label="Main"><a href="../portfolio/index.html">Portfolio</a><a href="../notes/index.html">Notes</a><a href="../codex/index.html">Codex</a><a href="../about/index.html" aria-current="page">About</a></nav>
+</header>
+<main class="wrap">
+  <div class="page-intro">
+    <span class="chip">ABOUT</span>
+    <p class="about-summary">I'm Iroh, a game programmer in Melbourne. Before games I was an emergency nurse. I'm a trained classical pianist and drummer, and I have completed my double degree in Business and Accounting at RMIT. Each of those chapters gave me skills and experience that I now bring to my work.</p>
+  </div>
+
+  <!-- 3x3 grid. The centre shows the summary; tapping an outer tile swaps in that tile's <template>.
+       Keep each chapter under about 40 words so it fits the square without scrolling.
+       Photos are 800x800 squares in assets/about_KEY.jpg. -->
+  <section class="about-grid" data-about>
+    <button type="button" class="about-tile" data-key="nursing" aria-pressed="false" aria-controls="about-panel">
+      <img src="../assets/about_nursing.jpg" alt="Iroh at the nurses' station holding a thank-you card and a tray of pastries" loading="lazy">
+      <span class="about-label">Nursing</span>
+    </button>
+    <button type="button" class="about-tile" data-key="music" aria-pressed="false" aria-controls="about-panel">
+      <span class="about-ph">[ MUSIC ]</span>
+      <span class="about-label">Music</span>
+    </button>
+    <button type="button" class="about-tile" data-key="muaythai" aria-pressed="false" aria-controls="about-panel">
+      <span class="about-ph">[ MUAY THAI ]</span>
+      <span class="about-label">Muay Thai</span>
+    </button>
+    <button type="button" class="about-tile" data-key="travel" aria-pressed="false" aria-controls="about-panel">
+      <img src="../assets/about_travel.jpg" alt="Iroh in a red jacket, arms raised, in front of frozen Tilicho Lake in the Annapurna range" loading="lazy">
+      <span class="about-label">Travel</span>
+    </button>
+    <div class="about-centre" id="about-panel" aria-live="polite">
+      <div class="about-panel is-empty" data-panel>
+        <p class="about-empty">Tap a photo to read that chapter.</p>
+      </div>
+      <button type="button" class="about-back" data-back hidden>← Back</button>
+    </div>
+    <button type="button" class="about-tile" data-key="charity" aria-pressed="false" aria-controls="about-panel">
+      <span class="about-ph">[ CHARITY ]</span>
+      <span class="about-label">Charity</span>
+    </button>
+    <button type="button" class="about-tile" data-key="teaching" aria-pressed="false" aria-controls="about-panel">
+      <span class="about-ph">[ TEACHING ]</span>
+      <span class="about-label">Teaching</span>
+    </button>
+    <button type="button" class="about-tile" data-key="business" aria-pressed="false" aria-controls="about-panel">
+      <img src="../assets/about_business.jpg" alt="Iroh in a Frontline Label tee, with bagged stock on the shelf beside him" loading="lazy">
+      <span class="about-label">Business</span>
+    </button>
+    <button type="button" class="about-tile" data-key="gamedev" aria-pressed="false" aria-controls="about-panel">
+      <img src="../assets/about_gamedev.jpg" alt="Iroh with two teammates in front of the Art and Death booth at PlayNow Melbourne" loading="lazy">
+      <span class="about-label">Game Development</span>
+    </button>
+  </section>
+
+  <template id="about-nursing">
+    <span class="kicker">NURSING</span>
+    <p>I worked as an emergency nurse. The emergency department taught me to stay calm under pressure, deal with what matters most first, and trust the team around me.</p>
+  </template>
+  <template id="about-music">
+    <span class="kicker">MUSIC</span>
+    <p>I'm a classically trained pianist. I earned a piano scholarship in high school and played in the Beijing Youth Olympics orchestra. Years of daily practice taught me that craft is built in small repetitions.</p>
+  </template>
+  <template id="about-muaythai">
+    <span class="kicker">MUAY THAI</span>
+    <p>Muay Thai is the traditional martial art of Thailand. I train because it's challenging, it keeps me healthy and it's social. Every session is repetition, discipline and learning from my mistakes, which is how I approach code too.</p>
+  </template>
+  <template id="about-travel">
+    <span class="kicker">TRAVEL</span>
+    <p>This is Tilicho Lake on the Annapurna circuit in Nepal, one of the highest lakes in the world. I did this trek solo, with a map to guide me. It taught me to take things one step at a time and to plan properly.</p>
+  </template>
+  <template id="about-charity">
+    <span class="kicker">CHARITY</span>
+    <p>I helped run community events with LACSI, including their Youth Week. I also organised a children's charity concert, where I played Joe Hisaishi's <i>Merry-Go-Round of Life</i> with a violinist.</p>
+  </template>
+  <template id="about-teaching">
+    <span class="kicker">TEACHING</span>
+    <p>I teach piano to adult learners and have taught children too. I've volunteered as a tutor at two homework clubs for over a decade, and spoken at a CPA conference. I thoroughly enjoy sharing what I know. It's why I keep a Codex of everything I've learnt, and write notes and case studies so others can learn too.</p>
+  </template>
+  <template id="about-business">
+    <span class="kicker">BUSINESS</span>
+    <p>In 2019 I started Frontline Label, an apparel brand, and built its online store myself in Python and Django, with Stripe for payments. I ran it until 2023. I have completed a double degree in Business and Accounting at RMIT.</p>
+  </template>
+  <template id="about-gamedev">
+    <span class="kicker">GAME DEVELOPMENT</span>
+    <p>This is PlayNow Melbourne 2025, where our team showed our VR horror game Art &amp; Death to publishers. One of my colleagues at RMIT introduced me to making games in 2024, and I got hooked. In 2025 I took a course in virtual reality and brought what I learnt into our horror game.</p>
+  </template>
+
+  <script>
+  (function () {
+    const grid = document.querySelector('[data-about]');
+    const panel = grid.querySelector('[data-panel]');
+    const back = grid.querySelector('[data-back]');
+    const summary = panel.innerHTML;
+    const tiles = grid.querySelectorAll('.about-tile');
+    function show(key) {
+      tiles.forEach(t => t.setAttribute('aria-pressed', String(t.dataset.key === key)));
+      const tpl = key && document.getElementById('about-' + key);
+      panel.innerHTML = tpl ? tpl.innerHTML : summary;
+      panel.classList.toggle('is-empty', !tpl);
+      back.hidden = !tpl;
+      panel.classList.remove('swap'); void panel.offsetWidth; panel.classList.add('swap');
+    }
+    tiles.forEach(t => t.addEventListener('click', () =>
+      show(t.getAttribute('aria-pressed') === 'true' ? null : t.dataset.key)));
+    back.addEventListener('click', () => show(null));
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') show(null); });
+    // a click anywhere outside the tiles and the panel goes straight back to the summary
+    document.addEventListener('click', e => {
+      if (back.hidden) return;
+      if (!e.target.closest('.about-tile, .about-centre')) show(null);
+    });
+  })();
+  </script>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap">
+    <a href="mailto:tuantrietn@gmail.com">tuantrietn@gmail.com</a>
+    <a href="https://github.com/irohgit" target="_blank" rel="noopener">github.com/irohgit</a>
+    <a href="https://www.linkedin.com/in/tuan-triet-nguyen" target="_blank" rel="noopener">linkedin.com/in/tuan-triet-nguyen</a>
+  </div>
+</footer>
+</body>
+</html>
