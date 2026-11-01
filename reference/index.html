@@ -22,6 +22,11 @@
   .page-reference .ref-scroll li{margin-bottom:2px}
   .page-reference .ref-scroll a{color:var(--text);text-decoration:underline;text-decoration-color:var(--border);text-underline-offset:3px}
   .page-reference .ref-scroll a:hover{color:var(--accent);text-decoration-color:var(--accent)}
+  .page-reference .ref-preamble{margin:0 0 24px;font-size:14px;line-height:1.7;color:var(--text)}
+  .page-reference .ref-preamble span{display:block}
+  .page-reference .ref-preamble .ref-lead{margin-bottom:10px}
+  .page-reference .ref-preamble .ref-indent{padding-left:56px}
+  .page-reference .ref-preamble .ref-label{display:inline-block;width:56px;font-family:var(--font-mono);font-size:12px;font-weight:700;letter-spacing:.08em;color:var(--accent)}
   .page-reference .ref-key{font-family:var(--font-mono);font-size:11px;color:var(--muted);margin-top:10px}
 </style>
 </head>
@@ -36,6 +41,13 @@
       <span class="chip">REFERENCE</span>
       <p class="ref-sub">Hierarchy of authority · C++ · Lua · Audio · Unreal · Game</p>
     </div>
+    <p class="ref-preamble">
+      <span class="ref-lead">This reference table ranks the sources of knowledge for each technical domain I work in, by hierarchy of authority.</span>
+      <span><span class="ref-label">WHAT:</span>Every source is ranked by authority: binding sources set the rules, persuasive sources explain them.</span>
+      <span><span class="ref-label">WHY:</span>For programmers who need a source to justify a decision, or to check a rule quickly.</span>
+      <span class="ref-indent">For colleagues in adjacent roles who want a deeper understanding of the work.</span>
+      <span><span class="ref-label">NOTE:</span>The level names borrow from law as an analogy. The C++ Standard is not legislation.</span>
+    </p>
   <div class="ref-scroll">
   <table>
     <thead>
