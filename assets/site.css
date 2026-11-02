@@ -27,6 +27,10 @@
   --font-display:'Big Shoulders Display',sans-serif;
   --font-body:'IBM Plex Sans',system-ui,sans-serif;
   --font-mono:'Space Mono',monospace;
+  --font-code:Consolas,'Inconsolata','Cascadia Mono','Courier New',monospace; /* code: straight terminal text */
+  --code-ink:#c792ea;     /* code: purple */
+  --clause-ink:#6cb6ff;   /* C++ standard clause links: blue */
+  --math-ink:#ff8fc8;     /* maths: pink */
   --max:1280px;
 }
 /* Other named palettes (accent only, base stays the same):
@@ -620,3 +624,21 @@ a.card:hover .veiled::after{background:rgba(13,14,17,.4)}
 
 /* Showreel: show the whole 4:3 frame (captions and subtitles) while playing */
 .hero.playing .hero-media{object-fit:contain}
+
+/* Codex: code is purple terminal text, standard clauses are blue, maths is pink */
+.codex .entry code{font-family:var(--font-code);font-size:.95em;color:var(--code-ink);background:var(--surface-2);padding:1px 6px;border-radius:4px}
+.codex .entry a.clause{font-family:var(--font-code);font-size:.95em;color:var(--clause-ink)}
+.codex .entry a.clause:hover{color:var(--clause-ink);text-decoration:underline}
+.codex .entry .math{color:var(--math-ink);white-space:nowrap}
+.codex .entry .analogy{grid-column:1/-1;margin-top:6px;padding:10px 14px;border-left:3px solid var(--accent-border);background:var(--surface-2);border-radius:0 8px 8px 0;font-size:.95em;color:var(--text)}
+.codex .entry .analogy-tag{display:block;font-family:var(--font-mono);font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);margin-bottom:4px}
+.codex .entry .analogy-steps{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px;counter-reset:an}
+.codex .entry .analogy-steps li{counter-increment:an;display:grid;grid-template-columns:28px minmax(0,1fr);column-gap:10px;row-gap:2px}
+.codex .entry .analogy-steps li::before{content:counter(an);grid-row:1/3;font-family:var(--font-mono);font-size:12px;font-weight:700;color:var(--accent-ink);background:var(--accent);border-radius:50%;width:22px;height:22px;display:grid;place-items:center;margin-top:1px}
+.codex .entry .an-stage{font-weight:500;color:var(--heading)}
+.codex .entry .an-term{font-family:var(--font-code);font-size:.85em;color:var(--clause-ink);margin-left:8px}
+.codex .entry .an-head{grid-column:2}
+.codex .entry .an-text{grid-column:2;color:var(--text)}
+.codex .entry p.cond-lead{margin-top:6px;color:var(--heading)}
+.codex .entry ul.conditions{grid-column:1/-1;margin:0;padding-left:20px;display:flex;flex-direction:column;gap:4px}
+.codex .entry ul.conditions b{color:var(--heading);font-weight:500}
